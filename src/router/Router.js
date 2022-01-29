@@ -13,7 +13,7 @@ import LoginOrSignUpPage from "../modules/auth/pages/LoginOrSignUpPage";
 import VerificationPage from "../modules/auth/pages/VerificationPage";
 import SignUpPage from "../modules/auth/pages/SignUpPage";
 import ModuleListPage from "../modules/settings/pages/module/ListPage";
-
+import Warehouse from "../modules/warehouse/pages/warehouse"
 
 const Router = ({ setBreadcrumbItemRequest, ...rest }) => {
     return (
@@ -36,6 +36,7 @@ const Router = ({ setBreadcrumbItemRequest, ...rest }) => {
                     <IsGuest>
                         <Switch>
                             <Route path={'/auth'} exact component={LoginOrSignUpPage} />
+                            <Route path={'/warehouse'} exact component={Warehouse} />
                             <Route path={'/auth/sign-up/:phone'} exact component={SignUpPage} />
                             <Route path={'/auth/verification/:phone/:smsCodeId'} exact component={VerificationPage} />
                             <Route path={'/auth/login/:phone'} exact component={LoginPage} />

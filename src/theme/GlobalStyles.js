@@ -3,6 +3,7 @@ import { createGlobalStyle } from "styled-components";
 // import 'react-tabs/style/react-tabs.css';
 // import '../assets/css/style.scss';
 import 'rc-checkbox/assets/index.css';
+import 'antd/dist/antd.css';
 
 export default createGlobalStyle`
   * {

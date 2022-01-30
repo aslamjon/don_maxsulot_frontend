@@ -1,12 +1,14 @@
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 import ReactCodeInput from 'react-verification-code-input';
 import styled from "styled-components";
-import { get } from "lodash";
+import {get,isEmpty} from "lodash";
 import Label from "../../../../components/elements/label";
-import { ErrorMessage } from "@hookform/error-message";
+import {ErrorMessage} from "@hookform/error-message";
+import errorImg from "../../../../assets/icons/error2.svg";
 
 const StyledVerificationInput = styled.div`
   .verification-input {
+    width:100% !important;
     & > div {
       display: flex;
       justify-content: space-between;
@@ -14,13 +16,16 @@ const StyledVerificationInput = styled.div`
 
     input {
       margin-right: 9px;
-      width: 50px !important;
-      height: 45px !important;
-      border: 1px solid #E6E8EC !important;
-      border-radius: 8px !important;
+      width: 65px !important;
+      height: 60px !important;
+      border: 1.5px solid ${({errors}) => isEmpty(errors) ? '#E6E8EC' : '#EF466F'} !important;
+      border-radius: 14px !important;
       font-family: 'Poppins', sans-serif;
       font-weight: 500;
-      font-size: 18px;
+      font-size: 30px;
+      &:focus{
+       border: 2px solid #45B36B !important; 
+      }
 
       &:last-child {
         margin-right: 0 !important;
@@ -30,29 +35,29 @@ const StyledVerificationInput = styled.div`
 `;
 
 const VerificationInput = ({
-    Controller,
-    control,
-    register,
-    name,
-    watch,
-    getValues,
-    errors,
-    params,
-    property,
-    defaultValue,
-    label,
-    setError,
-    ...rest
-}) => {
+                               Controller,
+                               control,
+                               register,
+                               name,
+                               watch,
+                               getValues,
+                               errors,
+                               params,
+                               property,
+                               defaultValue,
+                               label,
+                               setError,
+                               ...rest
+                           }) => {
     useEffect(() => {
         if (getValues(name)) {
             if (getValues(name).length < 6) {
-                setError(name, { type: 'required', message: 'Error' });
+                setError(name,{type:'required',message: 'Error'});
             }
         }
     }, [watch(name)]);
     return (
-        <StyledVerificationInput>
+        <StyledVerificationInput errors={errors} {...rest}>
             <Label
                 htmlFor={name}
             >
@@ -65,7 +70,7 @@ const VerificationInput = ({
                     name={name}
                     defaultValue={defaultValue}
                     rules={params}
-                    render={({ field }) => <ReactCodeInput
+                    render={({field}) => <ReactCodeInput
                         {...field}
                         fields={get(property, 'fields', 6)}
                         className={'verification-input'}
@@ -76,13 +81,13 @@ const VerificationInput = ({
                 <ErrorMessage
                     errors={errors}
                     name={name}
-                    render={({ messages = `${label} is required` }) => {
+                    render={({messages = `${label} is required`}) => {
                         if (errors[name].type = 'required') {
                             messages = `${label} is required`;
                         } else if (errors[name].type = 'pattern') {
                             messages = `${label} is not valid`;
                         }
-                        return <small className="form-error-message">{messages}</small>;
+                        return <small className="form-error-message"><img src={errorImg} alt=""/> {messages}</small>;
                     }}
                 />
             </div>

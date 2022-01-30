@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from "styled-components";
 import {Container} from 'react-grid-system';
-import Header from "../header";
+// import Header from "../header";
 
 const StyledContent = styled.div`
   min-height: 100vh;
@@ -17,7 +17,7 @@ const StyledContent = styled.div`
 const Content = ({children, ...rest}) => {
     return (
         <StyledContent {...rest}>
-            <Header/>
+            {/* <Header/> */}
             <div className="body">
                 <Container fluid>{children} </Container>
             </div>

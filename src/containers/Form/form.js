@@ -6,14 +6,18 @@ import styled from "styled-components";
 
 const StyledForm = styled.form`
   .form-group {
-    margin-bottom: 25px;
+    margin-bottom: 30px;
   }
 
   .form-error-message {
-    font-size: 12px;
     display: inline-block;
-    color: #EF466F;
     font-weight: 500;
+    font-size: 14px;
+    line-height: 21px;
+    display: flex;
+    align-items: center;
+    color: #EF466F;
+    margin-top: 10px;
   }
 `;
 const Form = ({

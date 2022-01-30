@@ -1,0 +1,19 @@
+.icon {
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+.icon-double-arrow-left {
+  mask-image: url("../icons/double-arrow-left.svg");
+  -webkit-mask-image: url("../icons/double-arrow-left.svg");
+}
+
+.icon-arrow-right-radius {
+  mask-image: url("../icons/arrow-right-radius.svg");
+  -webkit-mask-image: url("../icons/arrow-right-radius.svg");
+}

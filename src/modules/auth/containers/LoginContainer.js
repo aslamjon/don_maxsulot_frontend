@@ -1,55 +1,48 @@
 import React, { useState } from "react";
-import Form from "../../../containers/Form/form";
 import Button from "../../../components/elements/button";
 import Title from "../../../components/elements/title";
 import Flex from "../../../components/elements/flex";
 import Icon from "../../../components/elements/icon";
-import { isEmpty } from "lodash";
 import { connect } from "react-redux";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 import MiniLoader from "../../../components/loader/mini-loader";
 import Actions from "../actions";
+import FormDemo from "../../../containers/Form/form-demo";
+import Field from "../../../containers/Form/field";
+import { Col, Row } from "react-grid-system";
+import { showMessage, showError2 } from "../../../utils";
 
 const LoginContainer = ({
-  phone,
+  username,
   loginRequest,
   saveSignInDataRequest,
+  checkAuth,
   ...rest
 }) => {
   const [loading, setLoading] = useState(false);
   const history = useHistory();
-  const fields = [
-    {
-      id: 1,
-      name: "password",
-      label: "Password",
-      type: "input",
-      params: { required: true },
-      property: { placeholder: "Enter password", type: "password" },
-    },
-  ];
 
   const login = ({ data, setError }) => {
     setLoading(true);
     loginRequest({
-      attributes: { ...data, phoneNumber: phone },
+      attributes: { ...data, username },
       formMethods: { setLoading, setError },
       cb: {
-        success: ({
-          hasToken,
-          phoneNumber,
-          smsCode: { smsCodeId },
-          password,
+        fail: ({
+          message,
+          ...props
         }) => {
-          if (!hasToken) {
-            if (password) {
-              saveSignInDataRequest(password);
-            }
-            history.push(
-              `/auth/verification/${btoa(
-                phoneNumber
-              )}/${smsCodeId}?verificationType=${btoa("PHONE_NUMBER")}`
-            );
+          showError2(message);
+        },
+        success: ({
+          token,
+          ...other
+        }) => {
+          // showMessage(message);
+          console.log(other, "success")
+          if (token) {
+            checkAuth(token);
+            history.push(`/`);
           }
         },
       },
@@ -57,24 +50,19 @@ const LoginContainer = ({
   };
   return (
     <>
-      <Title medium xl lHeight="48" className={"text-center mb-36"}>
+      <Title medium lHeight="48" fs="32" className={"text-center mb-100"}>
         Welcome Back, Please <br /> log in to Get started
       </Title>
-      <Form
+      <FormDemo
         formRequest={login}
-        fields={fields}
-        params={{ required: true }}
-        property={{ disabled: false }}
-      >
-        {({ errors }) => (
+        footer={
           <Flex justify={"space-between"}>
             <Button
               center
               className="backButton"
               lightSmBorder
-              paddingTop={8}
-              paddingBottom={8}
-              bold
+              lightButton
+              onCLick={() => history.push("/auth")}
             >
               <Icon
                 icon="icon-left-arrow"
@@ -83,19 +71,27 @@ const LoginContainer = ({
               />
               Back
             </Button>
-            <Button
-              center
-              disabled={!isEmpty(errors)}
-              type={"submit"}
-              lightSmBorder
-              paddingTop={8}
-              paddingBottom={8}
-            >
+            <Button center type={"submit"} className="nextButton">
               {loading ? <MiniLoader /> : "Next"}
             </Button>
           </Flex>
-        )}
-      </Form>
+        }
+      >
+        <Field
+          type={"input"}
+          label={"Password"}
+          name={"password"}
+          property={{ placeholder: "**********", type: "password" }}
+          params={{ required: true }}
+        />
+        <Row>
+          <Col xs={12}>
+            <Link to={"#"} className={"forgot-password"}>
+              Forgot password ?
+            </Link>
+          </Col>
+        </Row>
+      </FormDemo>
     </>
   );
 };
@@ -116,6 +112,11 @@ const mapDispatchToProps = (dispatch) => {
       dispatch({
         type: Actions.SAVE_SIGN_IN_PASSWORD.SUCCESS,
         payload: data,
+      }),
+    checkAuth: (token = null) =>
+      dispatch({
+        type: Actions.CHECK_AUTH.REQUEST,
+        payload: { token },
       }),
   };
 };

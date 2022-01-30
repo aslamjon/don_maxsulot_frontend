@@ -12,6 +12,8 @@ import Text from "../../../components/elements/text";
 // import CountdownTimer from "../../../components/countdown-timer";
 import Icon from "../../../components/elements/icon";
 import { getPhoneWithMask, getQueryParams } from "../../../utils";
+import FormDemo from "../../../containers/Form/form-demo";
+import Field from "../../../containers/Form/field";
 
 const VerificationContainer = ({
   phone,
@@ -29,13 +31,12 @@ const VerificationContainer = ({
   const history = useHistory();
   const { search } = useLocation();
   const verificationType = getQueryParams(search, "verificationType");
-  console.log(verificationType);
 
   const fields = [
     {
       id: 1,
       name: "smsCode",
-      label: "Enter sms code",
+      label: "",
       type: "verification",
       params: { required: true },
     },
@@ -121,7 +122,7 @@ const VerificationContainer = ({
 
   return (
     <>
-      <Title medium lg className={"text-center mb-36"}>
+      <Title lg className={"text-center mb-100"}>
         Verification
       </Title>
       <Text className="messageAboutSending">
@@ -129,13 +130,18 @@ const VerificationContainer = ({
         Your Mobile number {getPhoneWithMask(phone)}
       </Text>
       {/* <CountdownTimer resend={resendSmsCode} /> */}
+
       <Form
         formRequest={request}
         fields={fields}
         params={{ required: true }}
         property={{ disabled: false }}
       >
-        {({ errors }) => (
+        {({ errors }) => ( <>
+          <FormDemo>
+            <Field className="checkbox" type={'checkbox'} name={"checkbox"} label={"Reliable device"} />
+          </FormDemo>
+        
           <Flex justify={"space-between"}>
             <Button
               center="1"
@@ -143,9 +149,7 @@ const VerificationContainer = ({
               center
               className="backButton"
               lightSmBorder
-              paddingTop={8}
-              paddingBottom={8}
-              bold
+              lightButton
             >
               <Icon
                 icon="icon-left-arrow"
@@ -160,12 +164,12 @@ const VerificationContainer = ({
               success="1"
               type={"submit"}
               lightSmBorder
-              paddingTop={8}
-              paddingBottom={8}
+              className="nextButton"
             >
               {loading ? <MiniLoader /> : "Next"}{" "}
             </Button>
           </Flex>
+        </>
         )}
       </Form>
     </>

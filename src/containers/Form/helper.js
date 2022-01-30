@@ -2,7 +2,6 @@ import React from "react"
 import {Input, MaskedInput} from "./components/input";
 import {Textarea} from "./components/textarea";
 import {AsyncSelect} from "./components/select";
-import {DatePicker} from "./components/date-picker/index"
 import {Checkbox} from "./components/checkbox";
 import {get} from "lodash";
 import VerificationInput from "./components/verification-code-input/verification-code-input";
@@ -20,6 +19,7 @@ class helper {
                 params: get(data, "field.params", get(attrs, "params")),
                 defaultValue: get(data, "field.defaultValue", ""),
                 label: get(data, "field.label", ""),
+                wrapCol: get(data, "field.wrapCol", ""),
             };
             switch (get(field, "type")) {
                 case "textarea":
@@ -34,8 +34,6 @@ class helper {
                     return <AsyncSelect {...attrs} {...field} />;
                 case "async":
                     return <AsyncSelect {...attrs} {...field} />;
-                case "datepicker":
-                    return <DatePicker {...attrs} {...field} />;
                 case "checkbox":
                     return <Checkbox {...attrs} {...field} />;
                 case "verification":

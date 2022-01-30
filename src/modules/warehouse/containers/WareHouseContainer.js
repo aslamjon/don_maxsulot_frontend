@@ -14,7 +14,7 @@ export default function WareHouseContainer({ columns, data }) {
         <div>
             <Button onClick={() => setIsOpenModal(s => !s)} success> add </Button>
             <Modal active={isOpenModal} onClose={() => setIsOpenModal(s => !s)}>
-                hello
+                helloo
             </Modal>
             <Table columns={columns} dataSource={data} onChange={onChange} />
         </div>

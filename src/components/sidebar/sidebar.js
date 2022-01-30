@@ -1,24 +1,24 @@
-import React, {useEffect, useState} from 'react';
-import styled from "styled-components";
-import {Link, NavLink} from "react-router-dom";
-import {find, get, isArray, isEqual, isNil, last} from "lodash";
+import React, { useEffect, useState } from "react";
+import styled, { css } from "styled-components";
+import { Link, NavLink } from "react-router-dom";
+import { find, get, isArray, isEqual, isNil, last, size } from "lodash";
 import classNames from "classnames";
 import StickyBox from "react-sticky-box";
-import {LazyLoadImage} from "react-lazy-load-image-component";
-import {motion} from "framer-motion";
-import {connect} from "react-redux";
+import { LazyLoadImage } from "react-lazy-load-image-component";
+import { motion } from "framer-motion";
+import { connect } from "react-redux";
 import miniLogo from "../../assets/images/mini-logo.svg";
 import Icon from "../elements/icon";
 import Title from "../elements/title";
 import switcherImg from "../../assets/icons/sidebar-switcher.svg";
 import Actions from "../../modules/settings/actions";
-
+import { getIconName, getUrlFromName } from "../../utils";
 
 const StyledSidebar = styled.div`
   display: flex;
   .sidebar {
     width: 100px;
-    background: #23262F;
+    background: #23262f;
     box-shadow: 0px 40px 32px -24px rgba(15, 15, 15, 0.12);
     height: 100vh;
     position: sticky;
@@ -26,45 +26,54 @@ const StyledSidebar = styled.div`
     left: 0;
     overflow-y: hidden;
     z-index: 99;
+    transition: 0.3s;
+    overflow-x: hidden;
+    ${({isSidebarOpen}) => !isSidebarOpen && css`
+      width: 0px;
+    `}
   }
 
-
   .sidebar {
-
     &__header {
       height: 80px;
       display: flex;
       justify-content: center;
-      padding-top: 25px;
+      padding-top: 30px;
+      .img-fluid {
+      width: 50px;
+      }
     }
 
-    &__content {${`min-height: calc(100vh - 250px);`};
+    &__content {
+      padding-top:15px;
+      ${`min-height: calc(100vh - 283px);`};
     }
 
     &__footer {
       border-top: 1px solid #353945;
-      padding-top: 0px;
-      padding-bottom: 30px;
-      height: 150px;
+      padding-top: 16px;
+      height: 203px;
 
       &_icon {
         display: flex;
         align-items: center;
         justify-content: center;
-        padding-top: 20px;
-        padding-bottom: 5px;
-
+        padding-top: 35px;
+        .icon {
+          transition: none;
+          transform: translate(-50%, -50%) rotate(180deg);
+        }
         &.rotated {
           .icon {
-            transform: rotate(-180deg) translate(-25%, -50%);
-            left: 0 !important;
-            top: 0 !important;
+            transform: translate(-50%, -50%) rotate(0deg);
+            /* left: 0 !important;
+            top: 0 !important; */
           }
         }
 
         .icon {
-          width: 15px !important;
-          height: 15px !important;
+          width: 8px !important;
+          height: 14px !important;
           display: inline-block;
 
           &:hover {
@@ -76,9 +85,9 @@ const StyledSidebar = styled.div`
 
     &__switcher {
       position: absolute;
-      left: ${({isSidebarOpen}) => isSidebarOpen ? '80px' : '-20px'};
-      width: 40px;
-      height: 80px;
+      left: ${({ isSidebarOpen }) => (isSidebarOpen ? "77.4px" : "-22px")};
+      width: 45px;
+      height: 90px;
       border-radius: 50%;
       background-image: url(${switcherImg});
       background-repeat: no-repeat;
@@ -89,14 +98,25 @@ const StyledSidebar = styled.div`
       justify-content: center;
       line-height: 1;
       z-index: 99;
-      top: -10px;
+      top: -1px;
+      transition: 0.3s;
+      .icon.icon-double-arrow-left{
+        position: relative !important;
+        top: 18px;
+        left: 20px;
+      }
 
       .for-animation {
-        transition: 0.2s ease;
+        transition: 0.1s ease;
 
         &.rotated {
           transform: rotate(180deg);
+          transform-origin: center;
           padding-right: 15px;
+            position: relative !important;
+            top: 6px;
+            left: 6px;
+          }
         }
       }
     }
@@ -107,26 +127,28 @@ const StyledSidebar = styled.div`
       margin-top: 20px;
       position: relative;
       list-style: none;
-
+      &__text{
+        font-size: 12px;
+      }
       &:last-child {
         margin-bottom: 0;
       }
 
       &:after {
         position: absolute;
-        content: '';
+        content: "";
         left: -5px;
-        top: 0;
-        height: 100%;
-        width: 9px;
+        top:7px;
+        height: 48px;
+        width: 10px;
         background: transparent;
-        border-radius: 12px;
+        border-radius: 13px;
         transition: 0.2s ease;
       }
 
       &:hover {
         &:after {
-          background: #F4F5F6;
+          background: #f4f5f6;
         }
 
         .menu__item_text {
@@ -149,16 +171,16 @@ const StyledSidebar = styled.div`
 
       &_text {
         font-size: 12px;
-        color: #B1B5C3;
-        margin-top: 5px;
+        color: #b1b5c4;
+        margin-top: 8px;
         font-weight: 500;
         transition: 0.2s ease;
+        text-transform: uppercase;
       }
 
       &.active {
         .menu__item_text {
           color: #fff;
-          font-weight: 600;
         }
 
         .icon {
@@ -166,261 +188,306 @@ const StyledSidebar = styled.div`
         }
 
         &:after {
-          background: #30C062;
+          background: #30c062;
         }
       }
     }
-
   }
 
   .submenu {
-    width: 250px;
-    background-color: #FCFCFD;
-    border-right: 1px solid #E6E8EC;
+    width: ${({ isSubmenuOpen }) => isSubmenuOpen ? "0px" : "250px"};
+    background-color: #fcfcfd;
+    border-right: 1px solid #e6e8ec;
     box-shadow: 0px 8px 16px -8px rgba(15, 15, 15, 0.2);
     border-radius: 0px 12px 12px 0px;
     height: 100vh;
-    padding: 60px 0px 15px 0px;
+    padding: 0px 0px 15px 0px;
     overflow-x: hidden;
-    position: ${({isSubmenuOpen}) => isSubmenuOpen ? 'relative' : 'absolute'};
-    left: ${({isSubmenuOpen}) => isSubmenuOpen ? '0px' : '100px'};
-    display: ${({isSubmenuOpen,hoverMenuId}) => isSubmenuOpen ? 'block' : !isNil(hoverMenuId) ? 'block' : 'none'};
-    z-index: 9;
-
+    /* position: ${({ isSubmenuOpen }) =>
+      isSubmenuOpen ? "relative" : "absolute"};
+    left: ${({ isSubmenuOpen }) => (isSubmenuOpen ? "0px" : "100px")};
+    display: ${({ isSubmenuOpen, hoverMenuId }) =>
+      isSubmenuOpen ? "block" : "none"}; */
+    z-index: 99;
+    transition: 0.2s;
     &__content {
-      &_item{
-        margin-bottom: 15px;
+      &_item {
+        padding-top: 29px;
+        &:nth-of-type(1) {
+          .submenu__links {
+            border-top: 2px solid #E6E8EC;
+            border-bottom: 2px solid #E6E8EC;
+            margin-top: 29px;
+          }
+        }
       }
+      
       h2 {
-        padding-left: 20px;
+        padding-left: 35px;
         padding-right: 15px;
-        font-size: 18px;
+        font-weight: 600;
+        font-size: 24px;
+        line-height: 36px;
         margin-bottom: 5px;
+        text-overflow: ellipsis;
+        width: 252px;
+        overflow: hidden;
+        
+        &[data-title]::before {
+          content: attr(data-title);
+          opacity: 0;
+          position: absolute;
+          margin-top:33px;
+          padding: 0px 10px;
+          background: #23262f;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 400;
+          white-space: wrap;
+          z-index: -9;
+          transition: 0.5s;
+          border-radius: 5px;
+          left : ${({ isSubmenuOpen }) => isSubmenuOpen ? "-100%" : "auto" };
+        }
+        &[data-title]:hover {
+          &::before {
+            z-index: 9;
+            opacity: 1;
+          }
+        }
       }
-
+      .submenu__links {
+        padding-top: 10px;
+        padding-bottom: 10px;
+      }
       .submenu__link {
+        margin: 0 15px;
         padding: 8px 15px 8px 20px;
+        padding: 8px 15px;
+        height: 57px;
+        font-weight: 500;
         font-size: 16px;
+        line-height: 24px;
         display: flex;
         align-items: center;
         color: #353945;
         text-decoration: none;
         transition: 0.3s ease;
-        &:hover{
-          background-color: #E6E8EC;
+        .text {
+          display: -webkit-box !important;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 1;
+          overflow: hidden;
         }
-
-        .dot {
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          background-color: #000;
-          display: inline-block;
-          margin-right: 10px;
-
-          &.active {
-            background-color: #E6E8EC;
-          }
+        &:hover {
+          border-radius: 10px;
+          background: rgba(69, 179, 107, 0.07);
+          color: #30c062;
         }
       }
     }
-  }
 `;
 
 const Sidebar = ({
-                     modules = [
-                         {
-                             id: 1,
-                             name: 'Academy',
-                             url: '/academy/student/list',
-                             icon: 'icon-home',
-                             departments: [
-                                 {
-                                     id: 1,
-                                     name: 'Student',
-                                     pages: [
-                                         {
-                                             id: 1,
-                                             name: 'Student list',
-                                             url: '/academy/student/list'
-                                         },
-                                     ]
-                                 },
-                                 {
-                                     id: 2,
-                                     name: 'Exam',
-                                     pages: [
-                                         {
-                                             id: 1,
-                                             name: 'Exam page',
-                                             url: '/academy/exam/list'
-                                         },
-                                     ]
-                                 },
-                             ]
-                         },
-                         {
-                             id: 2,
-                             name: 'Account',
-                             url: '/account',
-                             icon: 'icon-account',
-                             departments: [
-                                 {
-                                     id: 1,
-                                     name: 'Account',
-                                     pages: [
-                                         {
-                                             id: 1,
-                                             name: 'List',
-                                             url: '/account/account/list'
-                                         },
-                                     ]
-                                 },
-                             ]
-                         },
-                         {
-                             id: 3,
-                             name: 'Sales',
-                             url: '/sales',
-                             icon: 'icon-sales'
-                         },
-                         {
-                             id: 4,
-                             name: 'Marketing',
-                             url: '/marketing',
-                             icon: 'icon-marketing'
-                         },
-                         {
-                             id: 5,
-                             name: 'Humans',
-                             url: '/humans',
-                             icon: 'icon-humans'
-                         },
-                         {
-                             id: 6,
-                             name: 'Settings',
-                             url: '/settings',
-                             icon: 'icon-settings'
-                         }
-                     ],
-                     setActiveMenuItemIdRequest,
-                     sidebarActiveMenuId,
-                     setOpenSubmenuRequest,
-                     isSubmenuOpen,
-                     setOpenSidebarRequest,
-                     isSidebarOpen,
-                     ...rest
-                 }) => {
+  modules = [],
+  setActiveMenuItemIdRequest,
+  sidebarActiveMenuId,
+  setOpenSubmenuRequest,
+  isSubmenuOpen,
+  setOpenSidebarRequest,
+  isSidebarOpen,
+  ...rest
+}) => {
+  const [hoverMenuId, setHoverMenuId] = useState(null);
+  const [departments, setDepartments] = useState([]);
 
-    const [hoverMenuId, setHoverMenuId] = useState(null);
-    const [departments, setDepartments] = useState([]);
+  const setActiveMenuItemId = (id) => {
+    setActiveMenuItemIdRequest(id);
+  };
 
-    const setActiveMenuItemId = (id) => {
-        setActiveMenuItemIdRequest(id);
-    }
+  const setOpenSubmenu = () => {
+    setOpenSubmenuRequest(!isSubmenuOpen);
+  };
 
-    const setOpenSubmenu = () => {
-        setOpenSubmenuRequest(!isSubmenuOpen);
-    }
+  const setOpenSidebar = () => {
+    isSidebarOpen && setOpenSubmenuRequest(true);
+    setOpenSidebarRequest(!isSidebarOpen);
+  };
 
-    const setOpenSidebar = () => {
-        setOpenSidebarRequest(!isSidebarOpen);
-    }
-
-    useEffect(() => {
-        setDepartments(get(find(modules, module => isEqual(get(module, 'id'), sidebarActiveMenuId)), 'departments', []));
-    }, [sidebarActiveMenuId]);
-
-
-    return (
-        <StickyBox offsetTop={0} offsetBottom={0} className={'sticky'}>
-            <StyledSidebar isSubmenuOpen={isSubmenuOpen} isSidebarOpen={isSidebarOpen}
-                           hoverMenuId={hoverMenuId}  {...rest}>
-                {isSidebarOpen && <div className={'sidebar'}>
-                    <div className="sidebar__header">
-                        <Link to={'/'}>
-                            <LazyLoadImage src={miniLogo} className={'img-fluid'} alt="logo"/>
-                        </Link>
-                    </div>
-                    <div className="sidebar__content">
-                        <ul className="menu">
-                            {
-                                isArray(modules) && modules && modules.filter((item) => !isEqual(get(item, 'id'), modules.length)).map((module, index) =>
-                                    <li key={get(module, 'id', index + 1)}
-                                        onClick={() => setActiveMenuItemId(get(module, 'id'))}
-                                        className={classNames('menu__item', {active: isEqual(get(module, 'id'), sidebarActiveMenuId)})}
-                                    onMouseEnter={() => setHoverMenuId(get(module, 'id'))}
-                                        onMouseLeave={() => setHoverMenuId(null)}
-                                    >
-                                        <NavLink to={get(module, 'url', '/')} className={'menu__item_link'}>
-                                            <Icon icon={get(module, 'icon', 'icon-home')}/>
-                                            <span className={'menu__item_text'}>{get(module, 'name', '-')}</span>
-                                        </NavLink>
-                                    </li>)
-                            }
-
-                        </ul>
-                    </div>
-                    <div className="sidebar__footer">
-                        <ul>
-                            <li onClick={() => setActiveMenuItemId(modules.length)}
-                                className={classNames('menu__item', {active: isEqual(modules.length, sidebarActiveMenuId)})}>
-                                <Link to={get(last(modules), 'url', '#')} className={'menu__item_link'}>
-                                    <Icon icon={get(last(modules), 'icon')}/>
-                                    <span className={'menu__item_text'}>{get(last(modules), 'name', '-')}</span>
-                                </Link>
-                            </li>
-                        </ul>
-                        <motion.div className={classNames("sidebar__footer_icon", {rotated: isSubmenuOpen})}>
-                            <Icon icon={'icon-arrow-right'} onClick={setOpenSubmenu}/>
-                        </motion.div>
-                    </div>
-                </div>}
-                <motion.div className="submenu">
-                    <div className="submenu__content">
-                        {departments && departments.map((department, index) => <div key={get(department, 'id')}
-                                                                                    className="submenu__content_item">
-                            <Title medium sm>{get(department, 'name', '-')}</Title>
-                            <nav className={'submenu__links'}>
-                                {get(department, 'pages', []).map(page => <NavLink key={get(page, 'id')} to={'#'}
-                                                                                   className={'submenu__link'}><span
-                                    className={'dot'}></span><span className={'text'}>{get(page,'name','-')}</span>
-                                </NavLink>)
-                                }
-                            </nav>
-                        </div>)
-
-                        }
-                    </div>
-                </motion.div>
-                <div className="sidebar__switcher">
-                    <motion.div className={classNames('for-animation', {rotated: !isSidebarOpen})}><Icon
-                        onClick={setOpenSidebar} icon={'icon-double-arrow-left'} color={'success'}/></motion.div>
-                </div>
-            </StyledSidebar>
-        </StickyBox>
+  useEffect(() => {
+    setDepartments(
+      get(
+        find(modules, (module) =>
+          isEqual(get(module, "id"), sidebarActiveMenuId)
+        ),
+        "departments",
+        []
+      )
     );
+  }, [sidebarActiveMenuId]);
+  
+  return (
+    <StickyBox offsetTop={0} offsetBottom={0} className={"sticky"}>
+      <StyledSidebar
+        isSubmenuOpen={isSubmenuOpen}
+        isSidebarOpen={isSidebarOpen}
+        hoverMenuId={hoverMenuId}
+        {...rest}
+      >
+        {(
+          <div className={"sidebar"}>
+            <div className="sidebar__header">
+              <Link to={"/"}>
+                <LazyLoadImage
+                  src={miniLogo}
+                  className={"img-fluid"}
+                  alt="logo"
+                />
+              </Link>
+            </div>
+            <div className="sidebar__content">
+              <ul className="menu">
+                {isArray(modules) &&
+                  modules &&
+                  modules
+                    .filter((item) => !isEqual(get(item, "id"), modules.length))
+                    .map((module, index) => (
+                      <li
+                        key={get(module, "id", index + 1)}
+                        onClick={() => setActiveMenuItemId(get(module, "id"))}
+                        className={classNames("menu__item", {
+                          active: isEqual(
+                            get(module, "id"),
+                            sidebarActiveMenuId
+                          ),
+                        })}
+                        onMouseEnter={() => setHoverMenuId(get(module, "id"))}
+                        onMouseLeave={() => setHoverMenuId(null)}
+                      >
+                        <NavLink
+                          to={getUrlFromName(get(module, "name", "/"))}
+                          className={"menu__item_link"}
+                        >
+                          <Icon
+                            icon={getIconName(get(module, "name"))}
+                            size="lg"
+                            color="#B1B5C4"
+                          />
+                          <span className={"menu__item_text"}>
+                            {get(module, "title", "-")}
+                          </span>
+                        </NavLink>
+                      </li>
+                    ))}
+              </ul>
+            </div>
+            <div className="sidebar__footer">
+              <ul>
+                <li
+                  onClick={() => setActiveMenuItemId(modules.length)}
+                  className={classNames("menu__item", {
+                    active: isEqual(modules.length, sidebarActiveMenuId),
+                  })}
+                >
+                  <Link to={"/settings"} className={"menu__item_link"}>
+                    <Icon icon={"icon-settings"} size="lg" color="#B1B5C4" />
+                    <span className={"menu__item_text"}>SETTINGS</span>
+                  </Link>
+                </li>
+              </ul>
+              <motion.div
+                className={classNames("sidebar__footer_icon", {
+                  rotated: isSubmenuOpen,
+                })}
+              >
+                <Icon
+                  icon={"icon-arrow-right-radius"}
+                  onClick={setOpenSubmenu}
+                  color="#B1B5C4"
+                />
+              </motion.div>
+            </div>
+          </div>
+        )}
+        <motion.div className="submenu">
+          <div className="submenu__content">
+            {departments &&
+              departments.map((department, index) => (
+                <div
+                  key={get(department, "id")}
+                  className="submenu__content_item"
+                >
+                  <Title medium sm data-title={get(department, "name", "-")} >
+                    {get(department, "name", "-")}
+                  </Title>
+                  <nav className={"submenu__links"}>
+                    {get(department, "pages", []).map((page) => (
+                      <NavLink
+                        key={get(page, "id")}
+                        to={
+                          "/" +
+                          getUrlFromName(`${get(
+                            modules.find((module) =>
+                              isEqual(get(module, "id"), sidebarActiveMenuId)
+                            ),
+                            "name",
+                            "/"
+                          )} 
+                            ${get(department, "name", "")} 
+                            ${get(page, "name", "#")}`)
+                        }
+                        className={"submenu__link"}
+                      >
+                        <span className={"dot"}></span>
+                        <span className={"text"}>
+                          {get(page, "title", "-")}
+                        </span>
+                      </NavLink>
+                    ))}
+                  </nav>
+                </div>
+              ))}
+          </div>
+        </motion.div>
+        <div className="sidebar__switcher">
+          <motion.div
+            className={classNames("for-animation", { rotated: !isSidebarOpen })}
+          >
+            <Icon
+              onClick={setOpenSidebar}
+              size={"lg"}
+              icon={"icon-double-arrow-left"}
+              color={"success"}
+            />
+          </motion.div>
+        </div>
+      </StyledSidebar>
+    </StickyBox>
+  );
 };
 
 const mapStateToProps = (state) => {
-    return {
-        sidebarActiveMenuId: get(state, 'settings.menu_item_active_id', 1),
-        isSubmenuOpen: get(state, 'settings.is_open_submenu', false),
-        isSidebarOpen: get(state, 'settings.is_open_sidebar', true)
-    }
-}
+  return {
+    sidebarActiveMenuId: get(state, "settings.menu_item_active_id", 1),
+    isSubmenuOpen: get(state, "settings.is_open_submenu", false),
+    isSidebarOpen: get(state, "settings.is_open_sidebar", true),
+  };
+};
 const mapDispatchToProps = (dispatch) => {
-    return {
-        setActiveMenuItemIdRequest: (id) => {
-            dispatch({type: Actions.SET_ACTIVE_MENU_ITEM_ID.REQUEST, payload: {id}})
-        },
-        setOpenSubmenuRequest: (open) => {
-            dispatch({type: Actions.SET_OPEN_SUBMENU.REQUEST, payload: {open}})
-        },
-        setOpenSidebarRequest: (open) => {
-            dispatch({type: Actions.SET_OPEN_SIDEBAR.REQUEST, payload: {open}})
-        }
-    }
-}
+  return {
+    setActiveMenuItemIdRequest: (id) => {
+      dispatch({
+        type: Actions.SET_ACTIVE_MENU_ITEM_ID.REQUEST,
+        payload: { id },
+      });
+    },
+    setOpenSubmenuRequest: (open) => {
+      dispatch({ type: Actions.SET_OPEN_SUBMENU.REQUEST, payload: { open } });
+    },
+    setOpenSidebarRequest: (open) => {
+      dispatch({ type: Actions.SET_OPEN_SIDEBAR.REQUEST, payload: { open } });
+    },
+  };
+};
 
 export default connect(mapStateToProps, mapDispatchToProps)(Sidebar);

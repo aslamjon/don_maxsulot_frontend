@@ -14,6 +14,8 @@ import VerificationPage from "../modules/auth/pages/VerificationPage";
 import SignUpPage from "../modules/auth/pages/SignUpPage";
 import ModuleListPage from "../modules/settings/pages/module/ListPage";
 import Warehouse from "../modules/warehouse/pages/warehouse"
+import NoAccess from '../modules/auth/pages/NoAccess';
+import HomePage from '../modules/home/pages/HomePage';
 
 const Router = ({ setBreadcrumbItemRequest, ...rest }) => {
     return (
@@ -22,9 +24,10 @@ const Router = ({ setBreadcrumbItemRequest, ...rest }) => {
                 <LayoutManager>
                     <IsAuth>
                         <HasAccess>
-                            {({ userCan, modules, departments, pages, permissions }) => (
+                            {(p) => (
                                 <Switch>
-                                    <Route path={'/'} exact render={(props) => <ModuleListPage {...props} />} />
+                                    {/* {console.log} */}
+                                    <Route path={'/'} exact render={(props) => <HomePage {...props} />} />
 
                                     <Route path={'/404'} exact component={NotFoundPage} />
                                     <Redirect to={'/404'} />
@@ -36,6 +39,7 @@ const Router = ({ setBreadcrumbItemRequest, ...rest }) => {
                     <IsGuest>
                         <Switch>
                             <Route path={'/auth'} exact component={LoginOrSignUpPage} />
+                            <Route path={'/noaccess'} exact component={NoAccess} />
                             <Route path={'/warehouse'} exact component={Warehouse} />
                             <Route path={'/auth/sign-up/:phone'} exact component={SignUpPage} />
                             <Route path={'/auth/verification/:phone/:smsCodeId'} exact component={VerificationPage} />

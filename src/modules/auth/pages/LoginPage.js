@@ -17,7 +17,7 @@ const LoginPage = ({ ...rest }) => {
 
   return (
     <LoginPageStyled>
-      <LoginContainer phone={atob(phone)} {...rest} />
+      <LoginContainer username={atob(phone)} {...rest} />
     </LoginPageStyled>
   );
 };

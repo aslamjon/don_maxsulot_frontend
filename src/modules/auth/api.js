@@ -16,7 +16,7 @@ class Api {
 
 
     static Login = (attributes) => {
-        return request.post(`auth/v1/auth/sign-in`, {
+        return request.post(`auth/login`, {
             ...attributes
         });
     };
@@ -29,14 +29,14 @@ class Api {
 
     static GetMe = (token = null) => {
         if (token) {
-            return request.get('auth/v1/user/me', {
+            return request.get('user/', {
                 headers: {
                     'Authorization': 'Bearer ' + token
                 },
             });
         }
 
-        return request.get('auth/v1/user/me');
+        return request.get('user/');
     }
 
     static SendSmsForLoginOrForgotPassword = (attributes) => {

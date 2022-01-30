@@ -2,12 +2,14 @@ import React from 'react';
 import styled from "styled-components";
 
 const StyledWrapper = styled.div`
-  width: 1440px;
+  /* width: 1440px; */
   margin: 0 auto;
-  overflow-x: auto;
+  /* overflow-x: auto; */
   position: relative;
-  height: 100vh;
-  @media (min-width: 768px) {
+  min-height: 100vh;
+  overflow: hidden;
+
+  /* @media (min-width: 768px) {
     width: 750px;
   }
   @media (min-width: 992px) {
@@ -18,7 +20,7 @@ const StyledWrapper = styled.div`
   }
   @media (min-width: 1440px) {
     width: 1920px;
-  }
+  } */
 `;
 const Wrapper = ({children}) => {
     return (

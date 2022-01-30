@@ -119,13 +119,13 @@ function* loginRequest(action) {
         const { data } = yield call(ApiService.Login, attributes);
         yield put({ type: Actions.LOGIN.SUCCESS, payload: { data } });
         setLoading(false);
-        yield call(cb.success, { ...get(data, 'data'), ...attributes });
+        yield call(cb.success, { ...data });
     } catch (e) {
         yield put({ type: Actions.LOGIN.FAILURE });
         setLoading(false);
+        yield call(cb.fail, {...e.response.data, status: e.response.status});
         showError(e, setError);
     }
-
 }
 
 function* sendSmsForLoginOrForgotPasswordRequest(action) {

@@ -21,16 +21,16 @@ const SignUpContainer = ({
   const sendSmsCode = ({ data, setError }) => {
     setLoading(true);
     sendSmsForSignUpRequest({
-      attributes: { ...data, username: phone },
+      attributes: { ...data, phoneNumber: phone },
       formMethods: { setError, setLoading },
       cb: {
-        success: ({ username, smsCodeId, prePassword, password }) => {
+        success: ({ phoneNumber, smsCodeId, prePassword, password }) => {
           if (password && prePassword) {
             saveSignUpDataRequest({ password, prePassword });
           }
           history.push(
             `/auth/verification/${btoa(
-              username
+              phoneNumber
             )}/${smsCodeId}?verificationType=${btoa("SIGN_UP")}`
           );
         },
@@ -58,7 +58,7 @@ const SignUpContainer = ({
 
   return (
     <>
-      <Title medium xl lHeight="40" className={"text-center mb-36"}>
+      <Title medium lHeight="48" fs="32" className={"text-center mb-100"}>
         Registration
       </Title>
       <Form
@@ -71,11 +71,9 @@ const SignUpContainer = ({
           <Flex justify={"space-between"}>
             <Button
               onClick={() => history.push("/auth")}
-              center='1'
+              center="1"
               className="backButton"
-              bold='1'
-              paddingtop={5}
-              paddingbottom={5}
+              lightButton
             >
               <Icon
                 icon="icon-left-arrow"
@@ -84,8 +82,13 @@ const SignUpContainer = ({
               />
               Back
             </Button>
-            <Button disabled={!isEmpty(errors)} success='1' center='1' paddingtop={5}
-              paddingbottom={5} type={"submit"}>
+            <Button
+              disabled={!isEmpty(errors)}
+              success="1"
+              center="1"
+              type={"submit"}
+              className="nextButton"
+            >
               {loading ? <MiniLoader /> : "Next"}
             </Button>
           </Flex>

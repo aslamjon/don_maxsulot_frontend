@@ -65,7 +65,6 @@ const StyledAuthLayout = styled.div`
     
     &__right {
       width: 50.5%;
-      width: 100%;
       padding: 60px;
       position: relative;
       .logo {
@@ -142,12 +141,10 @@ const AuthLayout = ({ children, ...props }) => {
   return (
     <StyledAuthLayout {...props}>
       <Toastify />
-      {/* <Swiper
+      <Swiper
         modules={[Autoplay]}
         spaceBetween={0}
         slidesPerView={1}
-        onSlideChange={(e) => {console.log(e)}}
-        onSwiper={(swiper) => console.log(swiper)}
         className="auth__left"
         autoplay={{
           delay: 5000,
@@ -198,9 +195,9 @@ const AuthLayout = ({ children, ...props }) => {
             </div>
           </div>
         </SwiperSlide>
-      </Swiper> */}
+      </Swiper>
       <div className="auth__right" style={{ backgroundColor: "#fff" }}>
-        {/* <img className={"logo"} src={logo} alt="logo" /> */}
+        <img className={"logo"} src={logo} alt="logo" />
         <div className="auth__right__content">{children}</div>
       </div>
     </StyledAuthLayout>

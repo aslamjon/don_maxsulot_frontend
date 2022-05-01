@@ -1,261 +1,354 @@
-import React, {useEffect, useState} from "react";
-import styled,{css} from "styled-components";
-import {Col, Row} from "react-grid-system";
-import {connect} from "react-redux";
-import {get, isEmpty} from "lodash";
-import Button from "../../../components/elements/button";
-import FormDemo from "../../Form/form-demo";
-import Field from "../../Form/field";
-import Actions from "../../../modules/settings/actions";
-import {toast} from "react-toastify";
-import ListBox from "./ListBox";
-import Icon from "../../../components/elements/icon";
+import React, { useEffect, useState } from 'react';
+import styled, { css } from 'styled-components';
+import { Col, Row } from 'react-grid-system';
+import { connect } from 'react-redux';
+import { get, isEmpty } from 'lodash';
+import Button from '../../../components/elements/button';
+import FormDemo from '../../Form/form-demo';
+import Field from '../../Form/field';
+import Actions from '../../../modules/settings/actions';
+import { toast } from 'react-toastify';
+import ListBox from './ListBox';
+import Icon from '../../../components/elements/icon';
+import { withTranslation } from 'react-i18next';
+import { Draggable } from 'react-beautiful-dnd';
+
+const variables = {
+  dragingIconShow: '21px',
+};
 
 const StyledListItem = styled.div`
-    background: ${({active}) => active ? '#353945' : '#f1f2f4'};
-    border-radius: 10px;
-    /* padding: 10px; */
-    cursor: pointer !important;
-    margin-bottom: 10px; 
+  background: ${({ active }) => (active ? '#45B36B' : '#f1f2f4')};
+  border-radius: 10px;
+  /* padding: 10px; */
+  cursor: default !important;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+  height: 60px;
+  padding: 0 21px;
+  padding-left: 29px;
+  form {
     position: relative;
-    overflow: hidden;
-    height: 60px;
-    form{
-      position: relative;
-      display: inline-block;
+    display: inline-block;
+  }
+  .draggingIconContainer {
+    position: absolute;
+    top: 0px;
+    left: ${({ active }) => (active ? '0' : '-150px')};
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transition: 0.3s;
+    z-index: 2;
+    .IconDots {
+      .ui__icon__wrapper {
+        width: 23px;
+        height: 38px;
+        cursor: grab;
+        .icon {
+          width: 23px;
+          height: 38px;
+          -webkit-mask-size: 70%;
+          mask-size: 70%;
+          background: ${({ active }) => (active ? 'white' : '#777e91')};
+        }
+      }
     }
+  }
   .form {
+    height: 100%;
+    display: flex;
+    align-items: center;
     .form-input-container {
       padding: 0;
       background: unset;
       border: none;
       height: 40px;
+      max-width: 250px;
+      padding: 5px 14px;
+      padding-right: 40px;
+      background-color: ${({ disabled }) =>
+        disabled ? 'transparent' : '#FCFCFD'};
+      border-radius: 6px;
     }
 
     .form-input {
-      color: ${({active}) => active ? '#fff' : '#353945'};
+      color: ${({ active }) => (active ? '#fff' : '#353945')};
       font-size: 20px;
-      font-weight: 500;
+      font-weight: 400;
       line-height: 30px;
-      background-color: ${({disabled}) => disabled ? 'transparent' : '#FCFCFD'};
-      border-radius: 6px;
-      padding: 5px 14px;
       border: none;
       outline: none;
-      cursor: pointer;
       text-transform: uppercase;
-      height: 40px;
-      &:hover {
-        background-color: #E6E8EC;
-        color: #353945;
-        padding-left: 14px;
-      }
+      cursor: pointer;
+      padding: 0;
     }
 
     &__btn {
-      display: ${({disabled}) => disabled ? 'none' : 'block'};
-      a, button {
-        position: absolute;
-        top: 15px;
-        right: 18px;
-        z-index: 9;
+      /* display: ${({ disabled }) => (disabled ? 'none' : 'block')}; */
+      animation: ${({ disabled }) =>
+        disabled ? 'hideAnim 0.2s forwards' : 'showAnim 0.2s forwards'};
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      z-index: 9;
+      a,
+      button {
         width: 28px;
         height: 28px;
         border-radius: 5px;
-        min-width: unset;
-        background: #45B36B;
+        min-width: auto;
+        background: #e6e8ec;
+        .ui__icon__wrapper {
+          width: 20px !important;
+          height: 20px !important;
+          .icon {
+            width: 100% !important;
+            height: 100% !important;
+            -webkit-mask-size: auto;
+            mask-size: auto;
+          }
+        }
       }
     }
   }
   .iconContainer {
     position: absolute;
     top: 0px;
-    right: -150px;
+    right: 20px;
     height: 100%;
     display: flex;
     align-items: center;
-    transition: 0.3s;
-    .IconDots {
-      padding-right: 40px;
+    .bottomArrow {
       .ui__icon__wrapper {
-        width: 23px;
-        height: 38px;
+        transition: none;
+        width: 34px !important;
+        height: 34px !important;
         .icon {
-          width: 23px;
-          height: 38px;
-          -webkit-mask-size: 70%;
-          mask-size: 70%;
+          width: 100% !important;
+          height: 100% !important;
+          transition: none !important;
         }
       }
-    }
-    .bottomArrow{
-      transform: translateX(150px);
-      transition: 0.3s;
     }
   }
 
-  
-  ${({ active }) => active && css`
-    .iconContainer {
-        right: 0px;
-    }
-  `}
-  ${({ active }) => !active && css`
-    &:hover {
-      background: #E6E8EC;
-      color: #353945;
+  ${({ active }) =>
+    active &&
+    css`
       .iconContainer {
-        right: 0;
-      }
-      .form {
-        .form-input {
-          color: #353945;
-          &:hover {
-            color: #353945;
+        .bottomArrow {
+          transform: rotate(180deg);
+          .ui__icon__wrapper {
+            .icon {
+              background-color: #fcfcfd;
+            }
           }
         }
       }
-    }
-  `}
-  &.md{
+      &.md,
+      &.sm {
+        .iconContainer {
+          .bottomArrow {
+            .ui__icon__wrapper {
+              .icon {
+                background-color: ${({ active }) =>
+                  active ? 'white' : '#323232'};
+              }
+            }
+          }
+        }
+      }
+      .draggingIconContainer {
+        left: ${({ active }) => (active ? '21px' : '-150px')};
+      }
+    `}
+  ${({ active }) =>
+    !active &&
+    css`
+      &:hover {
+        background: #e6e8ec;
+        color: #353945;
+        .draggingIconContainer {
+          left: ${get(variables, 'dragingIconShow', '-150px')};
+        }
+        .form {
+          .form-input {
+            color: #353945;
+            &:hover {
+              color: ${({ active }) => (active ? 'white' : '#353945')};
+            }
+          }
+        }
+      }
+    `}
+  &.md {
     height: 60px;
     &:hover {
-      background: ${({active}) => active ? '#FCFCFD' : '#FCFCFD'};
+      background: ${({ active }) => (active ? '#45B36B' : '#FCFCFD')};
       .form {
         .form-input {
-          color: #353945;
+          color: ${({ active }) => (active ? 'white' : '#353945')};
         }
+      }
+      .draggingIconContainer {
+        left: ${get(variables, 'dragingIconShow', '-150px')};
       }
     }
-    background: ${({active}) => active ? '#F4F5F6' : '#F4F5F6'};
+    background: ${({ active }) => (active ? '#45B36B' : '#F4F5F6')};
 
-    .form{
-      .form-input{
-        color: ${({active}) => active ? '#353945' : '#353945'};
+    .form {
+      .form-input {
+        color: ${({ active }) => (active ? 'white' : '#353945')};
         font-size: 18px;
-        padding: 10px 15px;
         line-height: 27px;
-        padding: 9px 0 8px 16px;
-      }
-      &__btn{
-        button{
-          top: 14px;
-          width: 32px;
-          height: 32px;
-          border-radius: 10px;
-        }
       }
     }
     div.form {
       padding: 8px;
     }
     .iconContainer {
-      padding-right: 24px;
-      right: 0;
-      .bottomArrow{
+      .bottomArrow {
         transform: translateX(0px);
       }
-      .IconDots {
-        padding-right: 0;
-        display: none;
-      }
     }
-    ${({active}) => active && css`
-      .iconContainer {
-        .bottomArrow{
-          transform: rotate(180deg);
+    ${({ active }) =>
+      active &&
+      css`
+        .iconContainer {
+          .bottomArrow {
+            transform: rotate(180deg);
+          }
         }
-      }
-    `}
+      `}
   }
   &.sm {
     height: 60px;
     margin: 0 -20px 10px;
-    background: ${({active}) => active ? '#F4F5F6' : '#F4F5F6'};
+    background: ${({ active }) => (active ? '#45B36B' : '#F4F5F6')};
     &:hover {
-      background: #FCFCFD;
+      background: ${({ active }) => (active ? '#45B36B' : '#fcfcfd')};
       .form {
         .form-input {
-          color: #353945;
+          color: ${({ active }) => (active ? 'white' : '#353945')};
         }
+      }
+      .draggingIconContainer {
+        left: ${get(variables, 'dragingIconShow', '-150px')};
       }
     }
     .form {
       .form-input {
-        color: ${({active}) => active ? '#353945' : '#353945'};
+        color: ${({ active }) => (active ? 'white' : '#353945')};
         font-weight: normal;
         font-size: 16px;
         line-height: 24px;
-        padding: 8px 0 8px 14px;
       }
       &__btn {
-        a, button {
-          width: 30px;
+        a,
+        button {
+          /* width: 30px;
           height: 30px;
-          top: 15px;
+          top: 15px; */
         }
       }
     }
   }
 
   &.dragging {
-    background-color: #45B36B;
-    .form-input{
+    background-color: #45b36b;
+    .form-input {
       color: #fff;
     }
-    .iconContainer {
-      right: 0px;
+    .draggingIconContainer {
+      left: ${get(variables, 'dragingIconShow', '-150px')};
       .IconDots {
-        display: inline-block;
+        .ui__icon__wrapper {
+          .icon {
+            background: #fcfcfd;
+          }
+        }
+      }
+    }
+    .iconContainer {
+      right: 20px;
+    }
+    .iconContainer {
+      .bottomArrow {
+        .ui__icon__wrapper {
+          .icon {
+            background-color: #fcfcfd;
+          }
+        }
       }
     }
     &.md {
-      .iconContainer {
-        padding-right: 24px;
-      }
       .IconDots {
         padding-right: 16px;
       }
-      .form-input{
-          color: ${({active}) => active ? '#353945' : '#fff'};
+      .form-input {
+        color: ${({ active }) => (active ? 'red' : '#fff')};
       }
     }
 
     &.sm {
-      .iconContainer {
-        padding-right: 0px;
-        .IconDots {
-          padding-right: 20px;
-        }
-      }
-      .form-input{
-          color: ${({active}) => active ? '#353945' : '#fff'};
+      .form-input {
+        color: ${({ active }) => (active ? 'red' : '#fff')};
       }
     }
-    ${({ disabled, active }) => active && !disabled && css`
-      &.sm, &.md {
-        .form-input {
-          color: #353945 !important;
+    ${({ disabled, active }) =>
+      active &&
+      !disabled &&
+      css`
+        &.sm,
+        &.md {
+          .form-input {
+            color: red !important;
+          }
+        }
+      `}
+  }
+
+  ${({ disabled, className }) =>
+    !disabled &&
+    className === 'md' &&
+    css`
+      .from {
+        &__btn {
+          width: auto;
+          height: auto;
         }
       }
     `}
-  }
-  
-  ${({ disabled, className }) => !disabled && className === 'md' && css`
-    .from {
-      &__btn {
-        width: auto;
-        height: auto;
-      }
-    }
-  `}
-  ${({ disabled, active }) => active && !disabled && css`
+  ${({ disabled, active }) =>
+    active &&
+    !disabled &&
+    css`
     .form {
       &-input {
         color: #353945 !important;
-      }
+      }import Icon from './../../../components/elements/icon/index';
+
     }
   `}
+
+  ${({ disabled }) =>
+    !disabled &&
+    css`
+      &.md {
+        &:hover {
+          .draggingIconContainer {
+            left: -150px;
+          }
+        }
+      }
+      &:hover {
+        .draggingIconContainer {
+          left: -150px;
+        }
+      }
+    `}
   div.form {
     padding: 10px;
   }
@@ -265,94 +358,168 @@ const StyledListItem = styled.div`
   .h-100per {
     height: 100%;
   }
+  @keyframes hideAnim {
+    0% {
+      opacity: 0.8;
+      transform: scale(0.8);
+    }
+    50% {
+      opacity: 0.4;
+      transform: scale(0.5);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0);
+      display: none;
+    }
+  }
+  @keyframes showAnim {
+    0% {
+      opacity: 0.4;
+      display: block;
+      transform: scale(0.4);
+    }
+    50% {
+      opacity: 0.8;
+      transform: scale(0.8);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
 `;
 
-const ListItem = ({item, updateModuleRequest,link='edit-module',changeOrder = () =>{},isDraggingOver = false, ...rest}) => {
-    const [disabled, setDisabled] = useState(true);
-    const [active, setActive] = useState(false);
-    const [loading, setLoading] = useState(false);
+const ListItem = ({
+  item,
+  updateModuleRequest,
+  link = 'edit-module',
+  changeOrder = () => {},
+  isDraggingOver = false,
+  ...rest
+}) => {
+  const [disabled, setDisabled] = useState(true);
+  const [active, setActive] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (disabled) {
-            setActive(false)
-        }
-    }, [disabled])
+  useEffect(() => {
+    if (disabled) {
+      setActive(false);
+    }
+  }, [disabled]);
 
-    const update = ({data, setError}) => {
-        setLoading(true);
-        updateModuleRequest({
-            attributes: {...data, id: get(item, 'id', null),link},
-            formMethods: {setLoading, setError},
-            cb: {
-                success: ({message = 'SUCCESS'}) => {
-                    setDisabled(true);
-                    toast.success(message);
-                },
-            },
-        })
+  const update = ({ data, setError }) => {
+    setLoading(true);
+    updateModuleRequest({
+      attributes: { ...data, id: get(item, 'id', null), link },
+      formMethods: { setLoading, setError },
+      cb: {
+        success: ({ message = 'SUCCESS' }) => {
+          setDisabled(true);
+          toast.success(message);
+        },
+      },
+    });
+  };
+  const toggleDisabled = () => {
+    setDisabled((disabled) => !disabled);
+    setActive(false);
+  };
+  const makeDisabled = () => setDisabled(true);
+  console.log(active);
+  return (
+    <>
+      <StyledListItem disabled={disabled} active={active} {...rest}>
+        <div className="draggingIconContainer">
+          <Draggable draggableId={item.id}>
+            {(provided, snapshot) => (
+              <Icon
+                icon="icon-dots"
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+                mainClassName="IconDots"
+              />
+            )}
+          </Draggable>
+        </div>
+        <Row className="h-100per">
+          <Col xs={12}>
+            <div className="h-100per">
+              <FormDemo
+                mainClassName="h-100per"
+                formRequest={update}
+                className={'form'}
+                footer={
+                  <Button
+                    type={'button'}
+                    className={'form__btn'}
+                    center="1"
+                    checkDisable="1"
+                  >
+                    <Icon icon="icon-check2" color="#B1B5C4" />
+                  </Button>
+                }
+              >
+                <Field
+                  hideLabel={'ture'}
+                  type="input"
+                  name={'titleUz'}
+                  defaultValue={get(item, 'title')}
+                  property={{
+                    disabled: true,
+                    onDoubleClick: toggleDisabled,
+                    onBlur: makeDisabled,
+                  }}
+                />
+              </FormDemo>
+            </div>
+          </Col>
+        </Row>
+        <div className="iconContainer">
+          <Icon
+            icon="icon-bottom-arrow"
+            mainClassName="bottomArrow"
+            onClick={() => setActive((active) => !active)}
+          />
+        </div>
+      </StyledListItem>
 
-    };
-
-    return (
-        <>
-            <StyledListItem   disabled={disabled} active={active} {...rest} onClick={() => setActive(active => !active)}>
-                <Row className="h-100per">
-                    <Col xs={4}>
-                        <div className="h-100per" onDoubleClick={() => setDisabled(disabled => !disabled)}>
-                            <FormDemo mainClassName="" formRequest={update} className={'form'}
-                                      footer={<Button type={'submit'} className={'form__btn'} success="1" check="1"
-                                                      center="1" checkDisable="1"></Button>}>
-                                <Field hideLabel={"ture"} type="input" name={'titleUz'} defaultValue={get(item, 'titleUz')}
-                                       property={{disabled: disabled}}/>
-                            </FormDemo>
-                        </div>
-                    </Col>
-                    <Col xs={4}>
-                        <div onDoubleClick={() => setDisabled(disabled => !disabled)}>
-                            <FormDemo formRequest={update} className={'form'}
-                                      footer={<Button type={'submit'} className={'form__btn'} success="1" check="1"
-                                                      center="1" checkDisable="1"></Button>}>
-                                <Field hideLabel={"ture"} type="input" name={'titleEn'} defaultValue={get(item, 'titleEn')}
-                                       property={{disabled: disabled}}/>
-                            </FormDemo>
-                        </div>
-                    </Col>
-                    <Col xs={4}>
-                        <div onDoubleClick={() => setDisabled(disabled => !disabled)}>
-                            <FormDemo formRequest={update} className={'form'}
-                                      footer={<Button type={'submit'} className={'form__btn'} success="1" check="1"
-                                                      center="1" checkDisable="1"></Button>}>
-                                <Field hideLabel={"ture"} type="input" name={'titleEn'} defaultValue={get(item, 'titleEn')}
-                                       property={{disabled: disabled}}/>
-                            </FormDemo>
-                        </div>
-                    </Col>
-                </Row>
-                <div className="iconContainer">
-                  <Icon icon="icon-dots" mainClassName="IconDots" color="#FCFCFD" />
-                  <Icon icon="icon-bottom-arrow" color="#323232" mainClassName="bottomArrow" />
-                </div>
-            </StyledListItem>
-
-            {
-                active && !isEmpty(get(item, 'departments', [])) && <ListBox active link={'edit-department'} isDraggingOver={isDraggingOver} changeOrder={changeOrder} itemSize={'md'} data={get(item, 'departments', [])}/>
-            }
-            {
-                active && !isEmpty(get(item,'pages',[])) && <ListBox style={{marginTop: 0, padding: "0 20px"}} link={'edit-page'} data={get(item,'pages',[])} itemSize={'sm'} changeOrder={changeOrder} />
-            }
-        </>
-    );
+      {active && !isEmpty(get(item, 'departments', [])) && (
+        <ListBox
+          active
+          link={'edit-department'}
+          isDraggingOver={isDraggingOver}
+          changeOrder={changeOrder}
+          itemSize={'md'}
+          data={get(item, 'departments', [])}
+        />
+      )}
+      {active && !isEmpty(get(item, 'pages', [])) && (
+        <ListBox
+          style={{ marginTop: 0, padding: '0 20px' }}
+          link={'edit-page'}
+          data={get(item, 'pages', [])}
+          itemSize={'sm'}
+          changeOrder={changeOrder}
+        />
+      )}
+    </>
+  );
 };
 
 const mapStateToProps = (state) => {
-    return {}
-}
+  return {};
+};
 const mapDispatchToProps = (dispatch) => {
-    return {
-        updateModuleRequest: ({attributes, formMethods, cb}) => dispatch({
-            type: Actions.UPDATE_MODULE_OR_DEPARTMENT_OR_PAGE_TITLE.REQUEST,
-            payload: {attributes, formMethods, cb}
-        })
-    }
-}
-export default connect(mapStateToProps, mapDispatchToProps)(ListItem);
+  return {
+    updateModuleRequest: ({ attributes, formMethods, cb }) =>
+      dispatch({
+        type: Actions.UPDATE_MODULE_OR_DEPARTMENT_OR_PAGE_TITLE.REQUEST,
+        payload: { attributes, formMethods, cb },
+      }),
+  };
+};
+export default withTranslation('pdp')(
+  connect(mapStateToProps, mapDispatchToProps)(ListItem)
+);

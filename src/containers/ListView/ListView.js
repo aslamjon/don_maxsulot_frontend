@@ -1,10 +1,11 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {connect} from "react-redux";
-import {get, orderBy} from "lodash";
+import {get, isEmpty} from "lodash";
 import {InitialLoader} from "../../components/loader";
 import Normalizer from "../../services/normalizer";
 import ApiActions from "../../services/api/actions";
 import {toast} from "react-toastify";
+import {getSelectOptionsListFromData} from "../../utils";
 
 const ListView = ({
                       ComponentHead,
@@ -14,20 +15,34 @@ const ListView = ({
                       drawToRender,
                       scheme,
                       isFetched,
-                      meta,
-                      totalElements,
-                      totalPages,
                       entities,
                       addItemRequest,
                       addTitle = 'ADD',
+                      getDataSelectOptions,
+                      getDataSelectOptionsUrl,
+                      storeNameForSelect,
+                      options,
+                      getDataById,
+                      buttonHoverText,
+                      updateItemRequest,
+                      deleteItemRequest,
                       ...rest
                   }) => {
+    const [selected, setSelected] = useState('');
 
     useEffect(() => {
-        callToRender();
+        if (getDataSelectOptionsUrl) getDataSelectOptions();
+        else callToRender();
     }, []);
 
-    let data = orderBy(Normalizer.Denormalize(drawToRender, {data:{content:[scheme]}}, entities), ['orderIndex'], ['asc']);
+    useEffect(() => {
+        if (selected && getDataSelectOptionsUrl) getDataById(selected);
+    }, [selected]);
+
+
+    let selectOptions = !isEmpty(get(options, "result.data", [])) && getSelectOptionsListFromData(get(options, "result.data", []), "id", "name");
+
+    let data = Normalizer.Denormalize(drawToRender, [scheme], entities);
 
     const changeListOrder = ({data, request}) => {
         request({
@@ -39,11 +54,12 @@ const ListView = ({
         });
     }
 
-    if (!isFetched) {
-        return <InitialLoader/>
-    }
+
+    if (!isFetched && !getDataSelectOptionsUrl) return <InitialLoader/>;
+    // else if (!options.isFetched) return <InitialLoader/>;
 
     const add = ({data, setError, closeModal}) => {
+        data.courseId = selected;
         addItemRequest({
             attributes: data, formMethods: {setError}, cb: {
                 success: ({message = 'SUCCESS'}) => {
@@ -55,96 +71,169 @@ const ListView = ({
                 }
             }
         })
-        console.log('data', data)
     }
 
+    const update = ({data, setError}, id) => {
+        updateItemRequest({
+            attributes: data, formMethods: {setError}, cb: {
+                success: ({message = 'SUCCESS'}) => {
+                    toast.success(message);
+                    callToRender();
+                    if (getDataSelectOptionsUrl) getDataById(selected);
+                },
+                fail: () => {
+                }
+            }
+        }, id);
+    }
+
+    const deleteItem = ({data, setError}, id) => {
+        deleteItemRequest({
+            attributes: data, formMethods: {setError}, cb: {
+                success: ({message = 'SUCCESS'}) => {
+                    toast.success(message);
+                    callToRender();
+                    if (getDataSelectOptionsUrl) getDataById(selected);
+                },
+                fail: () => {
+                }
+            }
+        }, id)
+    }
     return (
         <>
-            <ComponentHead add={add} addTitle={addTitle}/>
-            <ComponentBody data={data} changeOrder={changeListOrder}/>
+            <ComponentHead tip={buttonHoverText} add={add} addTitle={addTitle} selected={selected}
+                           buttonBindSelect={!!(getDataSelectOptionsUrl)}/>
+            <ComponentBody
+                {...{
+                    data,
+                    changeOrder: changeListOrder,
+                    options: selectOptions,
+                    setSelected,
+                    update,
+                    deleteItem
+                }}
+            />
         </>
     );
 };
 
 const mapStateToProps = (state, ownProps) => {
-  return {
-    drawToRender:  get(state, `normalizer.data.${ownProps.storeName}.result.data`, []),
-    isFetched: get(
-      state,
-      `normalizer.data.${ownProps.storeName}.isFetched`,
-      false
-    ),
-    meta: get(
-      state,
-      `normalizer.data.${ownProps.storeName}.result.pageable`,
-      {}
-    ),
-    totalElements: get(
-      state,
-      `normalizer.data.${ownProps.storeName}.result.totalElements`,
-      0
-    ),
-    totalPages: get(
-      state,
-      `normalizer.data.${ownProps.storeName}.result.totalPages`,
-      0
-    ),
-    entities: get(state, "normalizer.entities", []),
-  };
+    return {
+        drawToRender: get(state, `normalizer.data.${ownProps.storeName}.result.data`, []),
+        isFetched: get(
+            state,
+            `normalizer.data.${ownProps.storeName}.isFetched`,
+            false
+        ),
+        entities: get(state, "normalizer.entities", []),
+        options: get(state, `api.${ownProps.storeNameForSelect}.data`, []),
+    };
 };
 const mapDispatchToProps = (dispatch, ownProps) => {
-  return {
-    callToRender: (params) => {
-        const storeName = ownProps.storeName;
-        const entityName = ownProps.storeName;
-        const scheme = {data:{content: [ownProps.scheme]}};
-        dispatch({
-            type: ApiActions.GET_ALL.REQUEST,
-            payload: {
-                url: ownProps.url,
-                baseUrl: ownProps.baseUrl,
-                config: {
-                    params,
-                    ...ownProps.params,
+    return {
+        callToRender: (params) => {
+            const storeName = ownProps.storeName;
+            const entityName = ownProps.storeName;
+            const scheme = {data: [ownProps.scheme]};
+            dispatch({
+                type: ApiActions.GET_ALL.REQUEST,
+                payload: {
+                    url: ownProps.url,
+                    baseUrl: ownProps.baseUrl,
+                    config: {
+                        params,
+                        ...ownProps.params,
+                    },
+                    scheme,
+                    storeName,
+                    entityName,
                 },
-                scheme,
-          storeName,
-          entityName,
+            });
         },
-      });
-    },
-    callToRenderTrigger: () => {
-        const storeName = ownProps.storeName;
-        const entityName = ownProps.entityName;
-        dispatch({
-            type: ApiActions.GET_ALL.TRIGGER,
-            payload: {
-                storeName,
-                entityName,
-            },
-        });
-    },
-      addItemRequest: ({attributes, formMethods, cb}) => {
-          const storeName = ownProps.storeName;
-          const entityName = ownProps.entityName;
-          const scheme = {data: {content:ownProps.scheme}};
-          dispatch({
-              type: ApiActions.OPERATION_ADD.REQUEST,
-              payload: {
-                  attributes,
-                  formMethods,
-                  cb,
-                  url: get(ownProps, 'addUrl', '#'),
-                  config: {
-                      ...ownProps.params,
-                  },
-                  scheme,
-                  storeName,
-                  entityName,
-              },
-          });
-      },
-  };
+        callToRenderTrigger: () => {
+            const storeName = ownProps.storeName;
+            const entityName = ownProps.entityName;
+            dispatch({
+                type: ApiActions.GET_ALL.TRIGGER,
+                payload: {
+                    storeName,
+                    entityName,
+                },
+            });
+        },
+        getDataSelectOptions: () => {
+            dispatch({
+                type: ApiActions.GET_DATA.REQUEST,
+                payload: {
+                    url: ownProps.getDataSelectOptionsUrl,
+                    method: 'get',
+                    storeName: ownProps.storeNameForSelect
+                }
+            })
+        },
+        getDataById: (id, params) => {
+            const storeName = ownProps.storeName;
+            const entityName = ownProps.storeName;
+            const scheme = {data: [ownProps.scheme]};
+            dispatch({
+                type: ApiActions.GET_ALL.REQUEST,
+                payload: {
+                    url: `${ownProps.getDataWithSelectUrl}/${id}`,
+                    baseUrl: ownProps.baseUrl,
+                    config: {
+                        params,
+                        ...ownProps.params,
+                    },
+                    scheme,
+                    storeName,
+                    entityName,
+                },
+            });
+        },
+        addItemRequest: ({attributes, formMethods, cb}) => {
+            const storeName = ownProps.storeName;
+            const entityName = ownProps.entityName;
+            const scheme = {data: ownProps.scheme};
+            dispatch({
+                type: ApiActions.OPERATION_ADD.REQUEST,
+                payload: {
+                    attributes,
+                    formMethods,
+                    cb,
+                    url: get(ownProps, 'addUrl', '#'),
+                    config: {
+                        ...ownProps.params,
+                    },
+                    scheme,
+                    storeName,
+                    entityName,
+                },
+            });
+        },
+        updateItemRequest: ({attributes, formMethods, cb}, id) => {
+            dispatch({
+                type: ApiActions.OPERATION_UPDATE.REQUEST,
+                payload: {
+                    attributes,
+                    formMethods,
+                    cb,
+                    url: `${ownProps.editUrl}/${id}`,
+                },
+            });
+        },
+        deleteItemRequest: ({attributes, formMethods, cb}, id) => {
+            dispatch({
+                type: ApiActions.OPERATION_DELETE.REQUEST,
+                payload: {
+                    attributes,
+                    formMethods,
+                    cb,
+                    url: `${ownProps.deleteUrl}/${id}`,
+                },
+            });
+        },
+    };
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(ListView);

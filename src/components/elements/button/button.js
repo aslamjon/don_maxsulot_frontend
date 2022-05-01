@@ -3,6 +3,7 @@ import { ButtonStyeld } from "./buttonStyles";
 import Icon from "../icon";
 import plusImg from "./../../../assets/icons/plus.svg";
 import { isString } from "lodash";
+import classNames from "classnames";
 
 export default function Button({
   children,
@@ -21,8 +22,11 @@ export default function Button({
 }) {
   return (
     <ButtonStyeld
-      className={className}
-      onClick={onCLick}
+      className={classNames("",{
+        [className]: className,
+        disabled
+      })}
+      onClick={(e) => !disabled && onCLick(e)}
       {...{ edit, plus, check, checkDisable, disabled, hideClickAnimation, ...props }}
     >
       {isString(link) && link.length ? (

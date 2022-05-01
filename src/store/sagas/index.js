@@ -5,9 +5,9 @@ import auth from "./../../modules/auth/saga";
 import settings from "./../../modules/settings/saga";
 export default function* sagas() {
     yield all([
+        auth(),
         normalizer(),
         api(),
-        auth(),
         settings(),
     ]);
 }

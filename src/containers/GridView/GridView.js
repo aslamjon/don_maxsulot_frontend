@@ -1,13 +1,13 @@
-import React, {useEffect, useState} from "react";
+import React, {memo, useCallback, useEffect, useState} from "react";
 import {connect} from "react-redux";
 import {get, isEmpty, isNil} from "lodash";
-import InfiniteScroll from 'react-infinite-scroller';
 import {InitialLoader} from "../../components/loader";
 import Normalizer from "../../services/normalizer";
 import ApiActions from "../../services/api/actions";
 import ComponentDefaultBody from "./components/ComponentBody";
 import ComponentDefaultHead from "./components/ComponentHead";
 import {toast} from "react-toastify";
+import {showError} from "../../utils";
 
 
 const GridView = ({
@@ -19,7 +19,6 @@ const GridView = ({
                       drawToRender,
                       scheme,
                       isFetched,
-                      size,
                       entities,
                       addItemRequest,
                       deleteItemRequest,
@@ -27,21 +26,38 @@ const GridView = ({
                       item,
                       updateItemRequest,
                       getOneTrigger,
-                      hasNext,
-                      page,
                       columns,
                       row,
                       modalTitle = '',
+                      hasModal = {},
+                      redirect = {},
+                      filterSelects = [],
+                      selectedId=null,
+                      getAllOptions,
+                      dataForModal={},
+                      selectOptions,
+                      disabledOnClose = false,
+                      getOneTriggerInApi,
+                      rightContent,
+                      buttonText = 'Create new',
+                      hideSearch = false,
+                      searchFields,
+                      hideHeader = false,
                       ...rest
                   }) => {
     const [openModal, setOpenModal] = useState(false);
+    const [modalButtonDisabled, setModalButtonDisabled] = useState(false);
     const [removeConfirm, setRemoveConfirm] = useState({id: null, text: null});
-
+    const [data, setData] = useState([]);
     useEffect(() => {
         if (isEmpty(drawToRender)) {
-            callToRender({page, size});
+            callToRender({});
         }
-    }, []);
+    }, [selectedId]);
+
+    useEffect(() => {
+        setData(Normalizer.Denormalize(drawToRender, [scheme], entities));
+    },[drawToRender]);
 
     const addOrEdit = (id = null, {data, setError}) => {
         if (isNil(id)) {
@@ -50,36 +66,40 @@ const GridView = ({
             update({id, attributes: {...data}, formMethods: {setError}});
         }
     }
-
     const add = ({attributes, formMethods}) => {
+        setModalButtonDisabled(true);
         addItemRequest({
             attributes, formMethods, cb: {
                 success: ({message = 'SUCCESS'}) => {
                     toast.success(message);
                     setOpenModal(false);
-                    emptyRemoveText()
+                    emptyRemoveText();
+                    setModalButtonDisabled(false);
                 },
                 fail: () => {
-
+                    setModalButtonDisabled(false);
                 }
             }
         })
     };
     const update = ({id, attributes, formMethods}) => {
+        setModalButtonDisabled(true);
         updateItemRequest({
             id, attributes, formMethods, cb: {
                 success: ({message = 'SUCCESS'}) => {
                     toast.success(message);
                     setOpenModal(false);
-                    emptyRemoveText()
+                    emptyRemoveText();
+                    callToRender();
+                    setModalButtonDisabled(false);
                 },
-                fail: () => {
-
+                fail: (res) => {
+                    showError(res)
+                    setModalButtonDisabled(false);
                 }
             }
         })
     };
-
     const remove = (id) => {
         deleteItemRequest({
             id, formMethods: {}, cb: {
@@ -90,106 +110,117 @@ const GridView = ({
                     callToRender();
                 },
                 fail: () => {
-
                 }
             }
         })
     };
-
     const openModalOrLink = () => {
         getOneTrigger();
         setOpenModal(true);
+        getOneTriggerInApi();
     }
-
     const emptyRemoveText = () => {
         setRemoveConfirm({id: null, text: null});
     }
 
-    let data = Normalizer.Denormalize(drawToRender, [scheme], entities);
-    item = Normalizer.Denormalize(item, {result: {data: scheme}}, entities);
+    const search = useCallback((str) => {
+        // console.log(str)
+    }, []);
 
+
+
+    let DenormalizeData = Normalizer.Denormalize(drawToRender, [scheme], entities);
+    // item = Normalizer.Denormalize(item, {result: {data: scheme}}, entities);
+
+    const searchFromView = (value, column) => {
+        value = String(value).toLowerCase().trim();
+        let res = DenormalizeData.filter(item => {
+            let temp = false;
+            column.forEach(v => String(get(item, `${v.customField}`, '')).toLowerCase().includes(value) ? temp = true : null );
+            return temp;
+        });
+        if (isEmpty(value)) setData(Normalizer.Denormalize(drawToRender, [scheme], entities));
+        else setData(res);
+    }
 
     if (!isFetched) {
         return <InitialLoader/>
     }
 
-    const loadMore = () => {
-        if (isFetched) {
-            // callToRender({page, size});
-        }
-    }
-
 
     return (<>
-            <ComponentHead buttonText={'Create new'} openModalOrLink={openModalOrLink}/>
-            <InfiniteScroll
-                pageStart={0}
-                loadMore={loadMore}
-                hasMore={false && isFetched && hasNext}
-                loader={<div className="loader" key={0}>Loading ...</div>}
-            >
-                <ComponentBody
-                    ModalBody={ModalBody}
-                    remove={remove}
-                    removeConfirm={removeConfirm}
-                    open={openModal}
-                    setOpenModal={(id, name) => {
-                        setOpenModal(true);
-                        setRemoveConfirm({id, name})
-                    }}
-                    closeModal={() => {
-                        setOpenModal(false);
-                        emptyRemoveText()
-                    }}
-                    data={data}
-                    addOrEdit={addOrEdit}
-                    getOneRequest={(id) => {
-                        getOneRequest(id);
-                        setOpenModal(true);
-                    }}
-                    item={item}
-                    columns={columns}
-                    row={row}
-                    modalTitle={modalTitle}
-                />
-            </InfiniteScroll>
+        { !hideHeader && <ComponentHead {...{
+                hideSearch,
+                buttonText,
+                search,
+                openModalOrLink,
+                rightContent,
+                searchFields,
+                searchFromView
+            }} /> }
+            <ComponentBody
+                ModalBody={ModalBody}
+                remove={remove}
+                removeConfirm={removeConfirm}
+                open={openModal}
+                setOpenModal={(id, name) => {
+                    setOpenModal(true);
+                    setRemoveConfirm({id, name})
+                }}
+                closeModal={() => {
+                    setOpenModal(false);
+                    emptyRemoveText();
+                }}
+                data={data}
+                addOrEdit={addOrEdit}
+                getOneRequest={(id) => {
+                    getOneRequest(id);
+                    setOpenModal(true);
+                }}
+                item={item}
+                columns={columns}
+                row={row}
+                modalTitle={modalTitle}
+                hasModal={hasModal}
+                redirect={redirect}
+                filterSelects={filterSelects}
+                {...{
+                    disabledOnClose,
+                    callToRender,
+                    getAllOptions,
+                    dataForModal: {
+                        getAllOptions,
+                        selectOptions,
+                        modalButtonDisabled,
+                        openModal,
+                        ...dataForModal,
+                    }
+                }}
+            />
         </>
     );
 };
 
 const mapStateToProps = (state, ownProps) => {
     return {
-        drawToRender: get(state, `normalizer.data.${ownProps.storeName}.result.data.content`, []),
+        drawToRender: get(state, `normalizer.data.${ownProps.storeName}.result.data`, []),
         isFetched: get(
             state,
             `normalizer.data.${ownProps.storeName}.isFetched`,
             false
         ),
-        page: get(
-            state,
-            `normalizer.data.${ownProps.storeName}.result.data.number`,
-            0
-        ),
-        size: get(
-            state,
-            `normalizer.data.${ownProps.storeName}.result.data.size`,
-            15
-        ),
-        hasNext: get(
-            state,
-            `normalizer.data.${ownProps.storeName}.result.data.hasNext`,
-            false
-        ),
         entities: get(state, "normalizer.entities", {}),
-        item: get(state, `normalizer.data.${ownProps.entityName}-one`, {}),
+        item: get(state, `api.${ownProps.entityName}-one.data`, {}),
+        // selectOptions: get(state, `api.${ownProps.optionsStoreName}.data`, {}),
+        selectOptions: (storeName) => get(state, `api.${storeName}.data`, {}),
     };
 };
 const mapDispatchToProps = (dispatch, ownProps) => {
     return {
-        callToRender: (params = {size: 15}) => {
+        callToRender: (params) => {
             const storeName = ownProps.storeName;
             const entityName = ownProps.storeName;
-            const scheme = {data: {content: [ownProps.scheme]}};
+            const scheme = {data: [ownProps.scheme]};
             dispatch({
                 type: ApiActions.GET_ALL.REQUEST,
                 payload: {
@@ -218,7 +249,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
                 },
             });
         },
-        addItemRequest: ({ attributes, formMethods, cb }) => {
+        addItemRequest: ({attributes, formMethods, cb}) => {
             const storeName = ownProps.storeName;
             const entityName = ownProps.entityName;
             const scheme = {data: ownProps.scheme};
@@ -280,15 +311,14 @@ const mapDispatchToProps = (dispatch, ownProps) => {
         },
         getOneRequest: (id) => {
             const storeName = `${ownProps.entityName}-one`;
-            const entityName = ownProps.entityName;
-            const scheme = {data: ownProps.scheme};
+            // const entityName = ownProps.entityName;
+            // const scheme = {data: ownProps.scheme};
             dispatch({
-                type: ApiActions.GET_ONE.REQUEST,
+                type: ApiActions.GET_DATA.REQUEST,
                 payload: {
                     url: `${get(ownProps, 'url.one')}/${id}`,
-                    scheme,
                     storeName,
-                    entityName
+                    method: "get"
                 }
             });
         },
@@ -300,8 +330,31 @@ const mapDispatchToProps = (dispatch, ownProps) => {
                     storeName,
                 }
             });
-        }
+        },
+        getOneTriggerInApi: () => {
+            const storeName = `${ownProps.entityName}-one`;
+            dispatch({
+                type: ApiActions.TEMP_DATA.REQUEST,
+                payload: {
+                    storeName,
+                    item: { data: null }
+                }
+            });
+        },
+        getAllOptions: ({ cb, storeName, url }) => {
+            // storeName = `${ownProps.optionsStoreName}`;
+            // url = get(ownProps, 'url.selectOptions', '#');
+            dispatch({
+                type: ApiActions.GET_DATA.REQUEST,
+                payload: {
+                    storeName,
+                    cb,
+                    method: "get",
+                    url,
+                }
+            });
+        },
     };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(GridView);
+export default connect(mapStateToProps, mapDispatchToProps)(memo(GridView));

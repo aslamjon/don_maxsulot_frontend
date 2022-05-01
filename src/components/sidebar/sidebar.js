@@ -1,18 +1,22 @@
-import React, { useEffect, useState } from "react";
-import styled, { css } from "styled-components";
-import { Link, NavLink } from "react-router-dom";
-import { find, get, isArray, isEqual, isNil, last, size } from "lodash";
+import React, {useEffect, useState} from "react";
+import styled, {css} from "styled-components";
+import {Link, NavLink} from "react-router-dom";
+import {find, get, isArray, isEqual} from "lodash";
 import classNames from "classnames";
 import StickyBox from "react-sticky-box";
-import { LazyLoadImage } from "react-lazy-load-image-component";
-import { motion } from "framer-motion";
-import { connect } from "react-redux";
+import {LazyLoadImage} from "react-lazy-load-image-component";
+import {motion} from "framer-motion";
+import {connect} from "react-redux";
 import miniLogo from "../../assets/images/mini-logo.svg";
 import Icon from "../elements/icon";
 import Title from "../elements/title";
 import switcherImg from "../../assets/icons/sidebar-switcher.svg";
 import Actions from "../../modules/settings/actions";
-import { getIconName, getUrlFromName } from "../../utils";
+import {getIconName, getUrlFromName} from "../../utils";
+import slugify from "react-slugify";
+import {withTranslation} from "react-i18next";
+import Rectangle from "../../assets/icons/Rectangle.svg"
+import {toast} from "react-toastify";
 
 const StyledSidebar = styled.div`
   display: flex;
@@ -81,6 +85,14 @@ const StyledSidebar = styled.div`
           }
         }
       }
+      .menu__item {
+        display: flex;
+        justify-content: center;
+        .dropDown {
+          width: auto;
+          height: auto;
+        }
+      }
     }
 
     &__switcher {
@@ -120,7 +132,7 @@ const StyledSidebar = styled.div`
         }
       }
     }
-  }
+  
 
   .menu {
     &__item {
@@ -137,13 +149,13 @@ const StyledSidebar = styled.div`
       &:after {
         position: absolute;
         content: "";
-        left: -5px;
+        left: 0px;
         top:7px;
-        height: 48px;
-        width: 10px;
-        background: transparent;
-        border-radius: 13px;
         transition: 0.2s ease;
+        mask-image: url(${Rectangle});
+        -webkit-mask-image: url(${Rectangle});
+        height: 48px;
+        width: 5px;
       }
 
       &:hover {
@@ -167,12 +179,21 @@ const StyledSidebar = styled.div`
         justify-content: center;
         align-items: center;
         text-decoration: none;
+        .ui__icon__wrapper {
+          border-radius: 0;
+          &.lg {
+            .icon {
+              width: 30px;
+              height: 30px;
+            }
+          }
+        }
       }
 
       &_text {
         font-size: 12px;
         color: #b1b5c4;
-        margin-top: 8px;
+        margin-top: 7px;
         font-weight: 500;
         transition: 0.2s ease;
         text-transform: uppercase;
@@ -182,7 +203,6 @@ const StyledSidebar = styled.div`
         .menu__item_text {
           color: #fff;
         }
-
         .icon {
           background-color: #fff;
         }
@@ -192,6 +212,40 @@ const StyledSidebar = styled.div`
         }
       }
     }
+  }
+  .sidebar__footer {
+    .menu {
+      &__item {
+        &:hover {
+          &:after {
+            background: none;
+            content: none;
+          }
+
+          .menu__item_text {
+            color: #fff;
+          }
+
+          .icon {
+            background-color: #B1B5C4;
+          }
+        }
+        &.active {
+          .menu__item_text {
+            color: #fff;
+          }
+
+          .icon {
+            background-color: #B1B5C4;
+          }
+
+          &:after {
+            background: none;
+            content: none;
+          }
+        }
+      }
+    }      
   }
 
   .submenu {
@@ -215,8 +269,10 @@ const StyledSidebar = styled.div`
         padding-top: 29px;
         &:nth-of-type(1) {
           .submenu__links {
-            border-top: 2px solid #E6E8EC;
-            border-bottom: 2px solid #E6E8EC;
+            //border-top: 1px solid #F4F5F6;
+            //border-bottom: 1px solid #F4F5F6;
+            border-top: 1px solid #E6E8EC;
+            border-bottom: 1px solid #E6E8EC;
             margin-top: 29px;
           }
         }
@@ -230,7 +286,8 @@ const StyledSidebar = styled.div`
         line-height: 36px;
         margin-bottom: 5px;
         text-overflow: ellipsis;
-        width: 252px;
+        //width: 252px;
+        width: 215px;
         overflow: hidden;
         
         &[data-title]::before {
@@ -279,6 +336,11 @@ const StyledSidebar = styled.div`
           -webkit-line-clamp: 1;
           overflow: hidden;
         }
+        &.active {
+          border-radius: 10px;
+          background: rgba(69, 179, 107, 0.07);
+          color: #30c062;
+        }
         &:hover {
           border-radius: 10px;
           background: rgba(69, 179, 107, 0.07);
@@ -286,9 +348,11 @@ const StyledSidebar = styled.div`
         }
       }
     }
+  }
 `;
 
 const Sidebar = ({
+    t,
   modules = [],
   setActiveMenuItemIdRequest,
   sidebarActiveMenuId,
@@ -296,11 +360,13 @@ const Sidebar = ({
   isSubmenuOpen,
   setOpenSidebarRequest,
   isSidebarOpen,
+  setSubmenu,
+  breadcrumbs,
   ...rest
 }) => {
   const [hoverMenuId, setHoverMenuId] = useState(null);
   const [departments, setDepartments] = useState([]);
-
+  console.log(modules);
   const setActiveMenuItemId = (id) => {
     setActiveMenuItemIdRequest(id);
   };
@@ -313,7 +379,12 @@ const Sidebar = ({
     isSidebarOpen && setOpenSubmenuRequest(true);
     setOpenSidebarRequest(!isSidebarOpen);
   };
+  
+  let btn = document.querySelector(".dropDown__button");
 
+  const clickDropDown = () => {
+    btn.click();
+  }
   useEffect(() => {
     setDepartments(
       get(
@@ -324,10 +395,18 @@ const Sidebar = ({
         []
       )
     );
+    // if (btn.innerText === "") btn.click();
   }, [sidebarActiveMenuId]);
-  
+
+  const handleClick = (e) => {
+    if(breadcrumbs.length >= 14) {
+      e.preventDefault();
+      toast.info(t("please_delete_any_of_the_tabs_and_try_again") ?? "please delete any of the tabs and try again");
+    }
+  }
+
   return (
-    <StickyBox offsetTop={0} offsetBottom={0} className={"sticky"}>
+    <StickyBox offsetTop={0} offsetBottom={0} className={"sticky"} style={{zIndex: 5}}>
       <StyledSidebar
         isSubmenuOpen={isSubmenuOpen}
         isSidebarOpen={isSidebarOpen}
@@ -346,11 +425,10 @@ const Sidebar = ({
               </Link>
             </div>
             <div className="sidebar__content">
-              <ul className="menu">
+              <ul className="menu" onMouseEnter={() => setSubmenu(true)} onMouseLeave={() => setSubmenu(false)} >
                 {isArray(modules) &&
                   modules &&
                   modules
-                    .filter((item) => !isEqual(get(item, "id"), modules.length))
                     .map((module, index) => (
                       <li
                         key={get(module, "id", index + 1)}
@@ -364,9 +442,9 @@ const Sidebar = ({
                         onMouseEnter={() => setHoverMenuId(get(module, "id"))}
                         onMouseLeave={() => setHoverMenuId(null)}
                       >
-                        <NavLink
-                          to={getUrlFromName(get(module, "name", "/"))}
-                          className={"menu__item_link"}
+                        <div
+                          // to={getUrlFromName(get(module, "name", "/"))}
+                          className={`menu__item_link ${(get(module, "id") == sidebarActiveMenuId) ? "active" : ""}`}
                         >
                           <Icon
                             icon={getIconName(get(module, "name"))}
@@ -374,9 +452,9 @@ const Sidebar = ({
                             color="#B1B5C4"
                           />
                           <span className={"menu__item_text"}>
-                            {get(module, "title", "-")}
+                            {t(get(module, "title", "-")) ?? get(module, "title", "-")}
                           </span>
-                        </NavLink>
+                        </div>
                       </li>
                     ))}
               </ul>
@@ -389,10 +467,10 @@ const Sidebar = ({
                     active: isEqual(modules.length, sidebarActiveMenuId),
                   })}
                 >
-                  <Link to={"/settings"} className={"menu__item_link"}>
+                  <div className={"menu__item_link"} onClick={clickDropDown}>
                     <Icon icon={"icon-settings"} size="lg" color="#B1B5C4" />
-                    <span className={"menu__item_text"}>SETTINGS</span>
-                  </Link>
+                    <span className={"menu__item_text"}>{t("SETTINGS")}</span>
+                  </div>
                 </li>
               </ul>
               <motion.div
@@ -418,29 +496,19 @@ const Sidebar = ({
                   className="submenu__content_item"
                 >
                   <Title medium sm data-title={get(department, "name", "-")} >
-                    {get(department, "name", "-")}
+                    {t(get(department, "name", "-")) ?? get(department, "name", "-")}
                   </Title>
                   <nav className={"submenu__links"}>
                     {get(department, "pages", []).map((page) => (
                       <NavLink
-                        key={get(page, "id")}
-                        to={
-                          "/" +
-                          getUrlFromName(`${get(
-                            modules.find((module) =>
-                              isEqual(get(module, "id"), sidebarActiveMenuId)
-                            ),
-                            "name",
-                            "/"
-                          )} 
-                            ${get(department, "name", "")} 
-                            ${get(page, "name", "#")}`)
-                        }
-                        className={"submenu__link"}
+                          onClick={handleClick}
+                          key={get(page, "id")}
+                          to={ "/" +getUrlFromName(`${slugify(get(modules.find((module) =>isEqual(get(module, "id"), sidebarActiveMenuId)),"name", "/"))} ${slugify(get(department, "name", ""))} ${slugify(get(page, "name", "#"))}`) }
+                          className={"submenu__link"}
                       >
                         <span className={"dot"}></span>
                         <span className={"text"}>
-                          {get(page, "title", "-")}
+                          {t(get(page, "title", "-")) ?? get(page, "title", "-")}
                         </span>
                       </NavLink>
                     ))}
@@ -471,6 +539,7 @@ const mapStateToProps = (state) => {
     sidebarActiveMenuId: get(state, "settings.menu_item_active_id", 1),
     isSubmenuOpen: get(state, "settings.is_open_submenu", false),
     isSidebarOpen: get(state, "settings.is_open_sidebar", true),
+    breadcrumbs: get(state, "settings.breadcrumbs", []),
   };
 };
 const mapDispatchToProps = (dispatch) => {
@@ -486,8 +555,8 @@ const mapDispatchToProps = (dispatch) => {
     },
     setOpenSidebarRequest: (open) => {
       dispatch({ type: Actions.SET_OPEN_SIDEBAR.REQUEST, payload: { open } });
-    },
+    }
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Sidebar);
+export default withTranslation('pdp')(connect(mapStateToProps, mapDispatchToProps)(Sidebar));

@@ -1,5 +1,5 @@
 import createSagaMiddleware from 'redux-saga';
-import { applyMiddleware } from 'redux';
+import {applyMiddleware} from 'redux';
 import sagas from "./sagas";
 
 const sagaMiddleware = createSagaMiddleware();
@@ -12,4 +12,4 @@ const afterCreate = (store) => {
     return store;
 }
 
-export { apply, afterCreate, list };
+export {apply, afterCreate, list};

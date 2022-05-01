@@ -1,19 +1,22 @@
-import { combineReducers } from 'redux';
+import {combineReducers} from 'redux';
 import { persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage'
+import storage from 'redux-persist/lib/storage';
 import normalizer from "./../../services/normalizer/reducers";
 import auth from "./../../modules/auth/reducers";
 import settings from "../../modules/settings/reducers";
+import api from "../../services/api/reducers";
 
-const rootReducer = combineReducers({
-    normalizer,
+
+const rootReducer =  combineReducers({
     auth,
+    normalizer,
     settings,
+    api
 });
 
 const persistConfig = {
     key: 'storage',
-    blacklist: ['normalizer'],
+    whitelist: ['auth','settings'],
     storage,
 }
 

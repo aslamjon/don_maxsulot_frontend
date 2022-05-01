@@ -1,3 +1,4 @@
+import React from "react";
 import classNames from "classnames";
 import styled from "styled-components";
 
@@ -190,6 +191,9 @@ const StyledIcon = styled.div`
         background-color: var(--icon--disable);
       }
     }
+    .icon {
+      background-color: ${({ color }) => color !== "white" && color !== "dark" && color !== "green" && color !== "info" && color !== "success" && color !== "warning" && color !== "danger" ? color : "var(--icon--default)"};
+    }
   }
 
 `;
@@ -203,11 +207,12 @@ const Icon = ({
                   mainOnClick = () => {},
                   className = '',
                   mainClassName = '',
+                  iconClassName='',
                   ...rest
               }) => {
 
     return (
-        <StyledIcon className={mainClassName} onClick={mainOnClick} >
+        <StyledIcon className={mainClassName} onClick={mainOnClick} color={color} >
             <div
                 className={classNames(`ui__icon__wrapper ${className}`, {
                     xs: size === "xs",
@@ -231,7 +236,7 @@ const Icon = ({
                 }}
                 {...rest}
             >
-                <div className={`icon ${icon}`}/>
+                <div className={`icon ${icon} ${iconClassName}`}/>
             </div>
         </StyledIcon>
     );

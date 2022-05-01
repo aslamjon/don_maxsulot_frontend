@@ -47,6 +47,7 @@ const VerificationInput = ({
                                defaultValue,
                                label,
                                setError,
+                               hideLabel,
                                ...rest
                            }) => {
     useEffect(() => {
@@ -58,11 +59,11 @@ const VerificationInput = ({
     }, [watch(name)]);
     return (
         <StyledVerificationInput errors={errors} {...rest}>
-            <Label
+            {!hideLabel && <Label
                 htmlFor={name}
             >
                 {label}
-            </Label>
+            </Label>}
             <div>
                 <Controller
                     as={ReactCodeInput}

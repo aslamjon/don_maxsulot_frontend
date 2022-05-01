@@ -3,40 +3,41 @@ import request from "../../services/api";
 class Api {
 
     static LoginOrSignUp = (attributes) => {
-        return request.post("user/isthere", {
-            ...attributes
+        return request.post("auth/v1/auth/check-phone", {
+           ...attributes
         });
     };
 
     static SendSmsForSignUp = (attributes) => {
-        return request.post("auth/login", {
+        return request.post("auth/v1/auth/send-sms-for-register", {
             ...attributes
         });
     };
 
 
     static Login = (attributes) => {
-        return request.post(`auth/login`, {
+        return request.post(`auth/v1/auth/sign-in`,{
             ...attributes
         });
     };
 
     static SignUp = (attributes) => {
-        return request.post(`auth/v1/auth/sign-up`, {
+        return request.post(`auth/v1/auth/sign-up`,{
             ...attributes
         });
     };
 
-    static GetMe = (token = null) => {
+    static GetMe = (token = null, lang = 'uz') => {
         if (token) {
-            return request.get('user/', {
+            return request.get('auth/v1/user/me', {
                 headers: {
-                    'Authorization': 'Bearer ' + token
+                    'Authorization': 'Bearer ' + token,
+                    'Accept-language': lang
                 },
             });
         }
 
-        return request.get('user/');
+        return request.get('auth/v1/user/me', {headers: {'Accept-Language': lang}});
     }
 
     static SendSmsForLoginOrForgotPassword = (attributes) => {
@@ -44,6 +45,11 @@ class Api {
             ...attributes
         });
     };
+
+    static Logout = () => {
+        return request.get(`auth/v1/user/logout`);
+    };
+
 }
 
 export default Api;

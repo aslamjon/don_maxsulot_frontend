@@ -1,0 +1,15 @@
+stages:
+
+  - run
+
+build_process:
+  stage: run
+  script:
+    
+    - npm install
+    - npm run build
+    - cp -r build/ /var/www/test.pdp.uz/
+    - systemctl restart front
+
+image: ubuntu:20.04
+

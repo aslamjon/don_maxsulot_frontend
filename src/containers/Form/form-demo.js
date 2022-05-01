@@ -1,6 +1,7 @@
-import React, {useEffect} from "react";
-import {Controller, useForm} from "react-hook-form";
+import React, { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 import styled from "styled-components";
+import { isArray, isEmpty } from "lodash";
 import FormProvider from "../../context/form/FormProvider";
 
 const StyledForm = styled.form`
@@ -9,7 +10,6 @@ const StyledForm = styled.form`
   }
 
   .form-error-message {
-    display: inline-block;
     font-weight: 500;
     font-size: 14px;
     line-height: 21px;
@@ -20,57 +20,65 @@ const StyledForm = styled.form`
   }
 `;
 const FormDemo = ({
-                      children,
-                      formRequest,
-                      isFetched,
-                      footer = '',
-                      getValueFromField = () => {
-                      },
-
-
-                      mainClassName = '',
-                      ...rest
-                  }) => {
-    const {
-        register,
-        handleSubmit,
-        setError,
-        formState: {errors},
-        getValues,
-        setValue,
-        watch,
-        control,
-    } = useForm({mode: "onChange"});
+  children,
+  formRequest,
+  isFetched,
+  footer = "",
+  getValueFromField = () => {},
+  mainClassName = "",
+  isClear = false,
+  resetData = {},
+  setValueData = [],
+  ...rest
+}) => {
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+    getValues,
+    setValue,
+    watch,
+    control,
+    reset,
+    clearErrors,
+  } = useForm({ mode: "onChange" });
 
   const onSubmit = (data) => {
     formRequest({ data, setError });
+    isClear && reset();
   };
   const attrs = {
-      Controller,
-      register,
-      errors,
-      control,
-      getValues,
-      watch,
-      setError,
-      setValue,
-      ...rest,
+    Controller,
+    register,
+    errors,
+    control,
+    getValues,
+    watch,
+    setError,
+    setValue,
+    clearErrors,
+    ...rest,
   };
 
-// console.log('ERRORS',errors)
+  useEffect(() => {
+    if (!isEmpty(resetData)) reset(resetData);
+  }, [resetData]);
 
-    return (
-        <StyledForm
-            onSubmit={handleSubmit(onSubmit)}
-            {...rest}
-            className={mainClassName}
-        >
-            <FormProvider value={{attrs, getValueFromField}}>
-                {children}
-            </FormProvider>
-            {footer}
-        </StyledForm>
-    );
+  useEffect(() => {
+    if (!isEmpty(setValueData) && isArray(setValueData)) {
+      setValueData.forEach((item) => {
+        setValue(item?.name, item?.value);
+      });
+    }
+  }, [setValueData]);
+
+  return (
+    <StyledForm onSubmit={handleSubmit(onSubmit)} {...rest} className={mainClassName}>
+      <FormProvider value={{ attrs, getValueFromField }}>{children}</FormProvider>
+      {footer}
+    </StyledForm>
+  );
 };
 
 export default FormDemo;

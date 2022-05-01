@@ -4,7 +4,7 @@ import styled, {css} from "styled-components";
 const StyledText = styled.p`
   font-size: 16px;
   font-weight: 400;
-  color: #23262F;
+  color: ${({cl}) => cl || '#23262F'};
 
   ${({light}) => light && css`
     color: #fff;

@@ -10,15 +10,24 @@ const SignUpPageStyled = styled.div`
       left: 25px;
     }
   }
+  label {
+    margin-bottom: 10px;
+  }
+  .input-container {
+    margin-bottom: 30px;
+    &.last {
+      margin-bottom: 20px;
+    }
+  }
 `;
 
 const SignUpPage = ({ ...rest }) => {
-  const { phone } = useParams();
-  return (
-    <SignUpPageStyled>
-      <SignUpContainer phone={atob(phone)} {...rest} />
-    </SignUpPageStyled>
-  );
+    const { phone } = useParams();
+    return (
+        <SignUpPageStyled>
+            <SignUpContainer phone={atob(phone)} {...rest} />
+        </SignUpPageStyled>
+    );
 };
 
 export default SignUpPage;

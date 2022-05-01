@@ -1,4 +1,4 @@
-import { setTheme } from "./themeAction";
+import {setTheme} from "./themeAction";
 export default {
     setTheme
 };

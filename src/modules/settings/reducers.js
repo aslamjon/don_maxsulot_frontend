@@ -1,5 +1,5 @@
 import Actions from "./actions";
-import {get,unionBy} from "lodash";
+import { get, unionBy } from "lodash";
 
 export default function ApiReducer(state = {}, action) {
     switch (action.type) {
@@ -100,7 +100,7 @@ export default function ApiReducer(state = {}, action) {
             return ((action, state) => {
                 return {
                     ...state,
-                    breadcrumbs: get(state,'breadcrumbs',[])
+                    breadcrumbs: get(state, 'breadcrumbs', [])
                 };
             })(action, state);
         case Actions.ADD_BREADCRUMB_ITEM.SUCCESS:
@@ -108,14 +108,14 @@ export default function ApiReducer(state = {}, action) {
                 const { item } = action.payload;
                 return {
                     ...state,
-                    breadcrumbs: unionBy(get(state,'breadcrumbs',[]),[item],'url')
+                    breadcrumbs: unionBy(get(state, 'breadcrumbs', []), [item], 'url')
                 };
             })(action, state);
         case Actions.ADD_BREADCRUMB_ITEM.FAILURE:
             return (() => {
                 return {
                     ...state,
-                    breadcrumbs: get(state,'breadcrumbs',[])
+                    breadcrumbs: get(state, 'breadcrumbs', [])
                 };
             })();
 
@@ -162,7 +162,7 @@ export default function ApiReducer(state = {}, action) {
             return ((action, state) => {
                 return {
                     ...state,
-                    breadcrumbs: get(state,'breadcrumbs',[])
+                    breadcrumbs: get(state, 'breadcrumbs', [])
                 };
             })(action, state);
         case Actions.REMOVE_BREADCRUMB_ITEM.SUCCESS:
@@ -177,7 +177,7 @@ export default function ApiReducer(state = {}, action) {
             return (() => {
                 return {
                     ...state,
-                    breadcrumbs: get(state,'breadcrumbs',[])
+                    breadcrumbs: get(state, 'breadcrumbs', [])
                 };
             })();
 
@@ -188,6 +188,36 @@ export default function ApiReducer(state = {}, action) {
                     breadcrumbs: [],
                 };
             })();
+        case Actions.SET_LOADER.REQUEST:
+            return ((action, state) => {
+                return {
+                    ...state,
+                    loading: true
+                };
+            })(action, state);
+        case Actions.SET_LOADER.SUCCESS:
+            return ((action, state) => {
+                return {
+                    ...state,
+                    loading: false
+                };
+            })(action, state);
+        case Actions.SET_MODE.REQUEST:
+            return ((action, state) => {
+                const { mode = 'light' } = action.payload;
+                return {
+                    ...state,
+                    mode
+                };
+            })(action, state);
+        case Actions.SET_LANG.SUCCESS:
+            return ((action, state) => {
+                const { lang = 'uz' } = action.payload;
+                return {
+                    ...state,
+                    lang
+                };
+            })(action, state);
         default:
             return state;
     }

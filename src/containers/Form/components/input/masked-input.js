@@ -1,10 +1,10 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import InputMask from "react-input-mask";
 import styled from "styled-components";
-import {ErrorMessage} from "@hookform/error-message";
-import {get, head, isEmpty, last} from "lodash";
+import { ErrorMessage } from "@hookform/error-message";
+import { get, head, isEmpty, last } from "lodash";
 import Label from "../../../../components/elements/label";
-import {Col, Row} from "react-grid-system";
+import { Col, Row } from "react-grid-system";
 import errorImg from "../../../../assets/icons/error2.svg";
 
 const StyledMaskedInput = styled.div`
@@ -18,6 +18,7 @@ const StyledMaskedInput = styled.div`
   }
   .masked-input {
     padding: 10px;
+    padding: 10px 10px 10px 0px;
     background: #fcfcfd;
     /* border: 1px solid #45b36b; */
     box-sizing: border-box;
@@ -35,25 +36,42 @@ const StyledMaskedInput = styled.div`
       color: #b1b5c4;
     }
   }
+  .prefix[prefix] {
+    display: flex;
+    align-items: center;
+    height: 54px;
+    &::before {
+      content: attr(prefix);
+      display: inline-block;
+      margin-right: 10px;
+      margin-left: 20px;
+      font-size: 20px;
+      color: #353945;
+      line-height: 30px;
+      font-family: "Poppins", sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+  }
 `;
 const MaskedInput = ({
   Controller,
   control,
   register,
-                       name,
-                       errors,
-                       params,
-                       property,
-                       defaultValue,
-                       getValues,
-                       watch,
-                       getValueFromField = () => {
-                       },
-                       label,
-                       cols = [12, 12],
-                       hideLabel = false,
-                       ...rest
-                     }) => {
+  name,
+  errors,
+  params,
+  property,
+  defaultValue,
+  getValues,
+  watch,
+  getValueFromField = () => {
+  },
+  label,
+  cols = [12, 12],
+  hideLabel = false,
+  ...rest
+}) => {
   useEffect(() => {
     getValueFromField(getValues(name), name);
   }, [watch(name)]);
@@ -66,7 +84,7 @@ const MaskedInput = ({
           </Col>
         )}
         <Col xs={last(cols)}>
-          <div>
+          <div className="prefix" prefix={property.prefix}>
             <Controller
               as={InputMask}
               control={control}
@@ -80,6 +98,8 @@ const MaskedInput = ({
                   placeholder={get(property, "placeholder")}
                   mask={get(property, "mask")}
                   maskChar={"-"}
+                  onFocus={() => property.setIsFocused(true) }
+                  onBlur={() => property.setIsFocused(false) }
                 />
               )}
             />
@@ -94,7 +114,7 @@ const MaskedInput = ({
                 } else if ((errors[name].type = "pattern")) {
                   messages = `${label} is not valid`;
                 }
-                return <small className="form-error-message"><img src={errorImg} alt=""/> {messages}</small>;
+                return <small className="form-error-message"><img src={errorImg} alt="" /> {messages}</small>;
               }}
             />
           </div>

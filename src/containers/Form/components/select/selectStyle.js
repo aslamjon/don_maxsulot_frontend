@@ -37,7 +37,7 @@ export const colourStyles = {
         borderTopRightRadius: 'unset',
         paddingRight: 0
     }),
-    option: (styles, { data, isDisabled, isFocused, isSelected, selectProps: { theme: { mode } } }) => {
+    option: (styles, { data, isDisabled, isFocused, isSelected, selectProps: { theme: { mode }, params: { optionStyles={} } } }) => {
         // const color = data.color;
         const color = "#353945";
         return {
@@ -47,6 +47,7 @@ export const colourStyles = {
             fontSize: "12px",
             lineHeight: "18px",
             margin: "0 10px 0 10px",
+            padding: "8px 12px",
             wdith: "100%",
             backgroundColor: isDisabled
                 ? undefined
@@ -77,7 +78,8 @@ export const colourStyles = {
             },
             ":last-child": {
                 borderRadius: "0 0 8px 8px"
-            }
+            },
+            ...optionStyles
         };
     },
     input: (styles, { selectProps: { theme: { mode } } }) => ({

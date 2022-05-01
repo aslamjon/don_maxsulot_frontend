@@ -13,11 +13,30 @@ const LoginPage = ({ ...rest }) => {
         left: 25px;
       }
     }
+    label{
+      margin-bottom: 10px;
+    }
+    h2{
+      margin-bottom: 80px;
+    }
+    .forgot-password{
+      color: #EF466F;
+      font-size: 14px;
+      line-height: 21px;
+      display: inline-block;
+      margin-bottom: 30px;
+      margin-top: 30px;
+      font-weight: 500;
+      text-decoration: none;
+      &:hover{
+        text-decoration: underline;
+      }
+    }
   `;
 
   return (
     <LoginPageStyled>
-      <LoginContainer username={atob(phone)} {...rest} />
+      <LoginContainer phone={atob(phone)} {...rest} />
     </LoginPageStyled>
   );
 };

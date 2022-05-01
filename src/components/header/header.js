@@ -1,43 +1,75 @@
 import React from 'react';
-import styled from "styled-components";
+import styled, {css} from "styled-components";
 import {connect} from "react-redux";
 import {get} from "lodash";
+import {useHistory} from "react-router-dom";
 import Breadcrumb from "../breadcrumb";
 import Account from "../elements/account";
-import Actions from "../../modules/settings/actions";
+import AuthActions from "../../modules/auth/actions";
 
 const StyledHeader = styled.header`
-  background-color: #F7F7FA;
-  padding-top: 37px;
-  padding-bottom: 0px;
-  padding-left: 30px;
-  padding-right: 30px;
+  background-color: #EFF1F3;
+  padding: 26px 30px 0px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 4px;
+  max-width: 100vw;
+  transition: 0.2s;
+  height: 76px;
   .btn {
     margin-bottom: 8px;
   }
+
+  .header__account {
+    position: absolute;
+    right: 38px;
+    transition: 0.2s;
+  }
+
+  ${({isSubmenuOpen}) => !isSubmenuOpen && css`
+      max-width: 82vw;
+  `}
 `;
-const Header = ({user,changeModeRequest,mode, ...rest}) => {
+const Header = ({user, isSubmenuOpen, checkAuth, logoutRequest, trigger, ...rest}) => {
+    const history = useHistory();
+    const logout = () => {
+        logoutRequest({
+            cb: {
+                success: () => {
+                    trigger();
+                    window.localStorage.clear();
+                    history.push('/');
+                    checkAuth();
+                }
+            }
+        })
+    }
     return (
-        <StyledHeader {...rest}>
+        <StyledHeader {...{isSubmenuOpen, ...rest}}>
             <Breadcrumb/>
-            <Account user={user} changeModeRequest={changeModeRequest} mode={mode}/>
+            <Account className="header__account" user={user} logoutRequest={logout} history={history}/>
         </StyledHeader>
     );
 };
 
 const mapStateToProps = (state) => {
     return {
-        mode:get(state,'settings.mode','light')
+        mode: get(state,'settings.mode','light'),
+        isSubmenuOpen: get(state, "settings.is_open_submenu", false),
+        isSidebarOpen: get(state, "settings.is_open_sidebar", true),
     }
 }
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        changeModeRequest: (mode) => dispatch({type: Actions.SET_MODE.REQUEST, payload: {mode}})
+        logoutRequest: ({cb}) => dispatch({type: AuthActions.LOGOUT.REQUEST, payload: {cb}}),
+        trigger: () => dispatch({type: AuthActions.AUTH_TRIGGER.TRIGGER}),
+        checkAuth: (token = null) =>
+            dispatch({
+                type: AuthActions.CHECK_AUTH.REQUEST,
+                payload: {token:null},
+            }),
     }
 }
 

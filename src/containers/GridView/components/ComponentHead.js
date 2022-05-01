@@ -5,11 +5,20 @@ import SearchAndAdd from "../../../modules/hr/components/searchAndAdd";
 const StyledComponentHead = styled.div`
 `;
 
-const ComponentHead = ({children,buttonText='Add',openModalOrLink = () => {},...rest}) => {
+const ComponentHead = ({
+                           children,
+                           buttonText = 'Add',
+                           openModalOrLink = () => { },
+                           search = () => { },
+                           rightContent,
+                           hideSearch,
+                           searchFields,
+                           searchFromView,
+                           ...rest
+                       }) => {
     return (
         <StyledComponentHead {...rest}>
-            <SearchAndAdd buttonText={buttonText}  openModalOrLink={openModalOrLink}/>
-
+            <SearchAndAdd  {...{ hideSearch, search, buttonText, openModalOrLink, children: rightContent, searchFields, searchFromView }} />
             {children}
         </StyledComponentHead>
     );

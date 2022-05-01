@@ -1,12 +1,16 @@
-import React, {useState} from 'react';
-import AboutEmployee from './../../hr/pages/AboutEmployee';
+import React, { memo } from 'react';
+import styled from 'styled-components';
 
-const TestPage = () => {  
-    return (
-        <div>
-            <AboutEmployee />
-        </div>
-    );
-};
+const StyledTestPage = styled.div`
+padding: 30px 38px;
+`;
 
-export default TestPage;
+const TestPage = () => {
+  return (
+    <StyledTestPage>
+
+    </StyledTestPage>
+  )
+}
+
+export default memo(TestPage);

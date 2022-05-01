@@ -1,0 +1,53 @@
+.icon {
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+}
+
+/*.icon-magic-wand {*/
+/*  mask-image: url("../icons/magic-wand.svg");*/
+/*  -webkit-mask-image: url("../icons/magic-wand.svg");*/
+/*}*/
+
+.icon-arrow-right-radius {
+  mask-image: url("../icons/arrow-right-radius.svg");
+  -webkit-mask-image: url("../icons/arrow-right-radius.svg");
+}
+
+.icon-home {
+  mask-image: url("../icons/academy.svg");
+  -webkit-mask-image: url("../icons/academy.svg");
+}
+
+.icon-sales {
+  mask-image: url("../icons/sales.svg");
+  -webkit-mask-image: url("../icons/sales.svg");
+}
+
+.icon-settings {
+  mask-image: url("../icons/settings.svg");
+  -webkit-mask-image: url("../icons/settings.svg");
+}
+
+.icon-double-arrow-left {
+  mask-image: url("../icons/double-arrow-left.svg");
+  -webkit-mask-image: url("../icons/double-arrow-left.svg");
+}
+
+.icon-bell {
+  mask-image: url("../icons/bell.svg");
+  -webkit-mask-image: url("../icons/bell.svg");
+}
+
+.icon-userImg {
+  mask-image: url("../icons/UserImg.svg");
+  -webkit-mask-image: url("../icons/UserImg.svg");
+}
+
+.icon-logout {
+  mask-image: url("../icons/Logout.svg");
+  -webkit-mask-image: url("../icons/Logout.svg");
+}

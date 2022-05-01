@@ -1,31 +1,29 @@
-import React, { useState } from 'react';
-import { ThemeProvider } from "styled-components";
+import React from 'react';
+import {ThemeProvider} from "styled-components";
+import {get} from "lodash";
 import GlobalStyles from "./GlobalStyles";
 import Wrapper from "../components/wrapper";
-import { connect } from 'react-redux';
+import {connect} from 'react-redux';
 
 
-const Theme = ({ children }) => {
-
-    const [mode, setMode] = useState('dark');
-
-    const changeMode = (value) => {
-        setMode(value);
-    }
+const Theme = ({mode,children}) => {
 
     return (
-        <ThemeProvider theme={{ mode }}>
+        <ThemeProvider theme={{mode}}>
             <Wrapper>
-                <GlobalStyles />
+                <GlobalStyles/>
                 {children}
             </Wrapper>
         </ThemeProvider>
     );
 };
-const mapStateToProps = (state) => ({
 
-})
-const mapDispatchToProps = (dispatch) => ({
-})
+
+const mapStateToProps = (state) => {
+    return {
+        mode:get(state,'settings.mode','light')
+    }
+}
+const mapDispatchToProps = (dispatch) => ({})
 
 export default connect(mapStateToProps, mapDispatchToProps)(Theme); 

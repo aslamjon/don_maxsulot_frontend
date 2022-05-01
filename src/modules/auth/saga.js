@@ -1,18 +1,17 @@
-import { all, call, put, takeLatest } from "redux-saga/effects";
-import { get } from "lodash";
+import {all, call, put, takeLatest} from "redux-saga/effects";
+import {get} from "lodash";
 import Actions from "./actions";
 import ApiService from "./api";
-import { showError } from "../../utils";
+import {showError} from "../../utils";
 
 function* checkAuthRequest(action) {
-    const { token = null } = action.payload;
+    const {token = null,lang='uz'} = action.payload;
     try {
-
-        const { data } = yield call(ApiService.GetMe, token);
-
-        yield put({ type: Actions.CHECK_AUTH.SUCCESS, payload: { user: get(data, 'data', null) } });
+        const {data} = yield call(ApiService.GetMe, token,lang);
+        yield put({type: Actions.CHECK_AUTH.SUCCESS, payload: {user: get(data, 'data', null)}});
     } catch (e) {
-        yield put({ type: Actions.CHECK_AUTH.FAILURE });
+        yield put({type: Actions.CHECK_AUTH.FAILURE});
+        showError(e);
     }
 }
 
@@ -22,7 +21,7 @@ function* loginOrSignUpRequest(action) {
     const {
         payload: {
             attributes,
-            formMethods: { setLoading, setError },
+            formMethods:{setLoading,setError},
             cb = {
                 success: () => {
                 },
@@ -33,14 +32,14 @@ function* loginOrSignUpRequest(action) {
     } = action;
 
     try {
-        const { data } = yield call(ApiService.LoginOrSignUp, attributes);
-        yield put({ type: Actions.LOGIN_OR_SIGNUP.SUCCESS });
+        const {data} = yield call(ApiService.LoginOrSignUp, attributes);
+        yield put({type: Actions.LOGIN_OR_SIGNUP.SUCCESS});
         setLoading(false);
-        yield call(cb.success, { ...data, ...attributes });
+        yield call(cb.success,{...data,...attributes});
     } catch (e) {
         setLoading(false);
-        showError(e, setError);
-        yield put({ type: Actions.LOGIN_OR_SIGNUP.FAILURE });
+        showError(e,setError);
+        yield put({type: Actions.LOGIN_OR_SIGNUP.FAILURE});
     }
 
 }
@@ -49,7 +48,7 @@ function* sendSmsForSignUpRequest(action) {
     const {
         payload: {
             attributes,
-            formMethods: { setLoading, setError },
+            formMethods:{setLoading,setError},
             cb = {
                 success: () => {
                 },
@@ -60,14 +59,14 @@ function* sendSmsForSignUpRequest(action) {
     } = action;
 
     try {
-        const { data } = yield call(ApiService.SendSmsForSignUp, attributes);
-        yield put({ type: Actions.SEND_SMS_FOR_SIGNUP.SUCCESS });
+        const {data} = yield call(ApiService.SendSmsForSignUp, attributes);
+        yield put({type: Actions.SEND_SMS_FOR_SIGNUP.SUCCESS});
         setLoading(false);
-        yield call(cb.success, { ...get(data, 'data', {}), ...attributes });
+        yield call(cb.success,{...get(data,'data',{}),...attributes});
     } catch (e) {
-        yield put({ type: Actions.SEND_SMS_FOR_SIGNUP.FAILURE });
+        yield put({type: Actions.SEND_SMS_FOR_SIGNUP.FAILURE});
         setLoading(false);
-        showError(e, setError);
+        showError(e,setError);
     }
 }
 
@@ -76,7 +75,7 @@ function* signUpRequest(action) {
     const {
         payload: {
             attributes,
-            formMethods: { setLoading, setError },
+            formMethods:{setLoading,setError},
             cb = {
                 success: () => {
                 },
@@ -87,15 +86,15 @@ function* signUpRequest(action) {
     } = action;
 
     try {
-        const { data } = yield call(ApiService.SignUp, attributes);
-        yield put({ type: Actions.SIGN_UP.SUCCESS });
+        const {data} = yield call(ApiService.SignUp, attributes);
+        yield put({type: Actions.SIGN_UP.SUCCESS});
         setLoading(false);
-        yield call(cb.success, { ...get(data, 'data'), ...attributes });
-        yield put({ type: Actions.SAVE_TOKEN.SUCCESS, payload: { token: get(data, 'data', null) } });
+        yield call(cb.success,{...get(data,'data'),...attributes});
+        yield put({type: Actions.SAVE_TOKEN.SUCCESS,payload:{token:get(data,'data',null)}});
     } catch (e) {
-        yield put({ type: Actions.SIGN_UP.FAILURE });
+        yield put({type: Actions.SIGN_UP.FAILURE});
         setLoading(false);
-        showError(e, setError);
+        showError(e,setError);
     }
 
 }
@@ -105,7 +104,7 @@ function* loginRequest(action) {
     const {
         payload: {
             attributes,
-            formMethods: { setLoading, setError },
+            formMethods:{setLoading,setError},
             cb = {
                 success: () => {
                 },
@@ -116,23 +115,24 @@ function* loginRequest(action) {
     } = action;
 
     try {
-        const { data } = yield call(ApiService.Login, attributes);
-        yield put({ type: Actions.LOGIN.SUCCESS, payload: { data } });
+        const {data} = yield call(ApiService.Login, attributes);
+        yield put({type: Actions.LOGIN.SUCCESS, payload: {data}});
         setLoading(false);
-        yield call(cb.success, { ...data });
+        yield call(cb.success, {...data,...attributes});
     } catch (e) {
-        yield put({ type: Actions.LOGIN.FAILURE });
+        yield put({type: Actions.LOGIN.FAILURE});
+        yield call(cb.fail, e?.response?.data);
         setLoading(false);
-        yield call(cb.fail, {...e.response.data, status: e.response.status});
-        showError(e, setError);
+        showError(e,setError);
     }
+
 }
 
 function* sendSmsForLoginOrForgotPasswordRequest(action) {
     const {
         payload: {
             attributes,
-            formMethods: { setLoading, setError },
+            formMethods:{setLoading,setError},
             cb = {
                 success: () => {
                 },
@@ -143,25 +143,39 @@ function* sendSmsForLoginOrForgotPasswordRequest(action) {
     } = action;
 
     try {
-        const { data } = yield call(ApiService.SendSmsForLoginOrForgotPassword, attributes);
-        yield put({ type: Actions.SEND_SMS_FOR_LOGIN_OR_FORGOT_PASSWORD.SUCCESS });
+        const {data} = yield call(ApiService.SendSmsForLoginOrForgotPassword, attributes);
+        yield put({type: Actions.SEND_SMS_FOR_LOGIN_OR_FORGOT_PASSWORD.SUCCESS});
         setLoading(false);
-        yield call(cb.success, { ...get(data, 'data', {}), ...attributes });
-        yield put({ type: Actions.SAVE_TOKEN.SUCCESS, payload: { token: get(data, 'data', null) } });
+        yield call(cb.success,{...get(data,'data',{}),...attributes});
+        yield put({type: Actions.SAVE_TOKEN.SUCCESS,payload:{token:get(data,'data',null)}});
     } catch (e) {
-        yield put({ type: Actions.SEND_SMS_FOR_LOGIN_OR_FORGOT_PASSWORD.FAILURE });
+        yield put({type: Actions.SEND_SMS_FOR_LOGIN_OR_FORGOT_PASSWORD.FAILURE});
         setLoading(false);
-        showError(e, setError);
+        showError(e,setError);
     }
 }
 
 
-
-
-function* logoutAuth() {
-    yield put({ type: Actions.CHECK_AUTH.REQUEST });
+function* logoutAuth(action) {
+    const {
+        payload: {
+            cb = {
+                success: () => {
+                },
+                fail: () => {
+                },
+            },
+        },
+    } = action;
+    try {
+        const {data} = yield call(ApiService.Logout);
+        yield put({type: Actions.LOGOUT.SUCCESS});
+        yield call(cb.success);
+    } catch (e) {
+        yield put({type: Actions.LOGOUT.FAILURE});
+        showError(e, showError());
+    }
 }
-
 
 export default function* sagas() {
     yield all([

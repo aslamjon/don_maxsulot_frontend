@@ -1,5 +1,5 @@
 import Actions from "./actions";
-import { get } from "lodash";
+import {get} from "lodash";
 
 export default function AuthReducer(state = {}, action) {
     switch (action.type) {
@@ -34,22 +34,22 @@ export default function AuthReducer(state = {}, action) {
         case Actions.SAVE_SIGN_UP_PASSWORD.SUCCESS:
             return {
                 ...state,
-                sign_up_data: get(action, "payload"),
+                sign_up_data:get(action, "payload"),
             }
         case Actions.SAVE_SIGN_UP_PASSWORD.TRIGGER:
             return {
                 ...state,
-                sign_up_data: null,
+                sign_up_data:null,
             }
         case Actions.SAVE_SIGN_IN_PASSWORD.SUCCESS:
             return {
                 ...state,
-                sign_in_data: get(action, "payload"),
+                sign_in_data:get(action, "payload"),
             }
         case Actions.SAVE_SIGN_IN_PASSWORD.TRIGGER:
             return {
                 ...state,
-                sign_in_data: null,
+                sign_in_data:null,
             }
         case Actions.SAVE_TOKEN.SUCCESS:
             return {
@@ -60,6 +60,12 @@ export default function AuthReducer(state = {}, action) {
             return {
                 ...state,
                 token: null,
+            }
+        case Actions.AUTH_TRIGGER.TRIGGER:
+            return {
+                auth:{
+                    isFetched:true
+                }
             }
         default:
             return state

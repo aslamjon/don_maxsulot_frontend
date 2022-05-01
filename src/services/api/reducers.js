@@ -1,5 +1,5 @@
-import Actions from "./Actions";
-import get from "lodash/get";
+import Actions from "./actions";
+import { get } from "lodash";
 
 export default function ApiReducer(state = {}, action) {
     switch (action.type) {
@@ -8,8 +8,8 @@ export default function ApiReducer(state = {}, action) {
                 const { storeName } = action.payload;
                 return {
                     ...state,
-                    data: {
-                        [storeName]: {
+                    [storeName]: {
+                        data: {
                             ...get(state, `data.${storeName}`, {}),
                             isFetched: false,
                         },
@@ -21,8 +21,8 @@ export default function ApiReducer(state = {}, action) {
                 const { result, storeName } = action.payload;
                 return {
                     ...state,
-                    data: {
-                        [storeName]: { result, isFetched: true },
+                    [storeName]: {
+                        data: { result, isFetched: true },
                     },
                 };
             })(action, state);
@@ -54,6 +54,32 @@ export default function ApiReducer(state = {}, action) {
                     },
                 };
             })();
+
+        case Actions.TEMP_DATA.REQUEST:
+            return ((action, state) => {
+                const { storeName = "tempData" } = action.payload;
+                return {
+                    ...state,
+                    [storeName]: get(state, storeName, "")
+                };
+            })(action, state);
+        case Actions.TEMP_DATA.SUCCESS:
+            return ((action, state) => {
+                const { item, storeName = "tempData" } = action.payload;
+                return {
+                    ...state,
+                    [storeName]: item
+                };
+            })(action, state);
+        case Actions.TEMP_DATA.FAILURE:
+            return ((action, state) => {
+                const { storeName = "tempData" } = action.payload;
+                return {
+                    ...state,
+                    [storeName]: get(state, storeName, "")
+                };
+            })(action, state);
+
         default:
             return state;
     }
